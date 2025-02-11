@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unduh Gambar dari Clipboard</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #clickArea {
+            width: 500px;
+            height: 300px;
+            border: 3px dashed #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            font-size: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        #editOption {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #editName, #formatSelect {
+            display: none;
+        }
+        #editCheckbox:checked + label {
+            display: none;
+        }
+        #editCheckbox:checked ~ #editName,
+        #editCheckbox:checked ~ #formatSelect {
+            display: block;
+        }
+        #editCheckbox:checked ~ #clickArea {
+            background-color: lightgreen;
+        }
+    </style>
+</head>
+<body>
+    <div id="clickArea">Klik di sini untuk mengambil gambar dari clipboard</div>
+    
+    <div id="editOption">
+        <input type="checkbox" id="editCheckbox">
+        <label for="editCheckbox">Centang untuk mengedit nama gambar</label>
+        <input type="text" id="editName" placeholder="Masukkan nama gambar">
+        <select id="formatSelect">
+            <option value="png">.png</option>
+            <option value="jpg">.jpg</option>
+        </select>
+    </div>
+    
+    <script>
+        document.getElementById('clickArea').addEventListener('click', async () => {
+            try {
+                const clipboardItems = await navigator.clipboard.read();
+                for (const item of clipboardItems) {
+                    for (const type of item.types) {
+                        if (type.startsWith('image/')) {
+                            const blob = await item.getType(type);
+                            const url = URL.createObjectURL(blob);
+                            
+                            const filename = document.getElementById('editCheckbox').checked && document.getElementById('editName').value
+                                ? document.getElementById('editName').value + '.' + document.getElementById('formatSelect').value
+                                : 'clipboard-image.png';
+                            
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = filename;
+                            link.click();
+                            
+                            URL.revokeObjectURL(url);
+                            return;
+                        }
+                    }
+                }
+                alert('Tidak ada gambar di clipboard!');
+            } catch (error) {
+                console.error('Gagal mengambil dari clipboard:', error);
+                alert('Browser tidak mendukung akses clipboard.');
+            }
+        });
+    </script>
+</body>
+</html>
