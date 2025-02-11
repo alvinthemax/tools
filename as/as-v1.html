@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airdrop Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .container {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .container h2 {
+            margin-bottom: 10px;
+        }
+        .output {
+            font-weight: bold;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .input-group label {
+            margin-right: 10px;
+        }
+        .delete-btn {
+            margin-left: 10px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+        .modifier-btn, .add-btn {
+            margin-left: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+        .copy-btn {
+            margin-top: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+    </style>
+    <script>
+        function ensureHttps(inputElement) {
+            const value = inputElement.value.trim();
+            if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
+                inputElement.value = 'https://' + value;
+            }
+        }
+
+        function displayAirdropDetails() {
+            const projectName = document.getElementById('project-name').value;
+            const funding = document.getElementById('funding').value;
+            const checkboxesType = document.querySelectorAll('.type-checkbox input[type="checkbox"]:checked');
+            const selectedTypes = Array.from(checkboxesType).map(checkbox => checkbox.value).join(', ');
+            const linkToJoin = document.getElementById('link-to-join').value;
+            const codes = document.getElementById('codes').value;
+            const checkboxesHow = document.querySelectorAll('.how-checkbox input[type="checkbox"]:checked');
+            const selectedHows = Array.from(checkboxesHow).map(checkbox => checkbox.value).join(', ');
+            const deadline = document.getElementById('deadline').value;
+            const usefulLinks = Array.from(document.querySelectorAll('.useful-links input')).map(input => input.value).filter(value => value);
+
+            let output = '';
+
+            if (projectName) {
+                output += `Airdrop Name : ${projectName}<br>`;
+            }
+
+            if (funding) {
+                output += `Funding : $${funding}<br>`;
+            }
+
+            if (selectedTypes) {
+                output += `Type : ${selectedTypes}<br>`;
+            }
+
+            if (linkToJoin) {
+                output += `Link to Join : <a href="${linkToJoin}" target="_blank">${linkToJoin}</a><br>`;
+            }
+
+            if (codes) {
+                output += `Codes : ${codes}<br>`;
+            }
+
+            if (selectedHows) {
+    output += `How :<br>`;
+    selectedHows.split(', ').forEach(how => {
+        output += `- ${how}<br>`;
+    });
+}
+
+
+            if (deadline) {
+                output += `Deadline to participate : ${new Date(deadline).toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                })}<br>`;
+            }
+
+            if (usefulLinks.length > 0) {
+                output += `Useful Links:<br>`;
+                usefulLinks.forEach(link => {
+                    output += `- <a href="${link}" target="_blank">${link}</a><br>`;
+                });
+            }
+
+            document.getElementById('output').innerHTML = output;
+        }
+
+        function clearInput(inputId) {
+            document.getElementById(inputId).value = '';
+        }
+
+        function modifyFunding(modifier) {
+    const fundingInput = document.getElementById('funding');
+    let value = fundingInput.value.trim();
+
+    // Ganti koma (,) menjadi titik (.)
+    value = value.replace(',', '.');
+
+    // Validasi apakah input adalah angka valid
+    const numericValue = parseFloat(value);
+    if (!isNaN(numericValue)) {
+        fundingInput.value = `${numericValue}${modifier}`;
+    } else {
+        alert('Masukkan nilai angka yang valid!');
+    }
+}
+
+
+        function addUsefulLinkInput() {
+            const container = document.querySelector('.useful-links');
+            const inputGroup = document.createElement('div');
+            inputGroup.className = 'input-group';
+            inputGroup.innerHTML = `
+                <input type="url" placeholder="Enter useful link" onblur="ensureHttps(this)">
+                <button type="button" class="delete-btn" onclick="this.parentElement.remove()">x</button>
+            `;
+            container.appendChild(inputGroup);
+        }
+
+        function copyOutput() {
+            const outputElement = document.getElementById('output');
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = outputElement.innerText;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+            alert('Output copied to clipboard!');
+        }
+
+        async function downloadImageFromClipboard() {
+    try {
+        // Memeriksa apakah API Clipboard tersedia
+        if (!navigator.clipboard || !navigator.clipboard.read) {
+            alert("Clipboard API not supported in this browser.");
+            return;
+        }
+
+        // Membaca item dari clipboard
+        const clipboardItems = await navigator.clipboard.read();
+        for (const item of clipboardItems) {
+            for (const type of item.types) {
+                // Memeriksa apakah tipe adalah gambar
+                if (type.startsWith("image/")) {
+                    const blob = await item.getType(type); // Mendapatkan gambar dalam format blob
+                    const url = URL.createObjectURL(blob); // Membuat URL sementara untuk blob
+                    const link = document.createElement("a"); // Membuat elemen <a> untuk memicu unduhan
+                    link.href = url;
+                    link.download = "clipboard-image.png"; // Nama file default
+                    document.body.appendChild(link);
+                    link.click(); // Memicu klik untuk mendownload
+                    document.body.removeChild(link); // Menghapus elemen setelah klik
+                    URL.revokeObjectURL(url); // Membersihkan URL sementara
+                    return; // Keluar dari fungsi setelah unduhan selesai
+                }
+            }
+        }
+        alert("No image found in clipboard."); // Pesan jika tidak ada gambar di clipboard
+    } catch (error) {
+        alert("Failed to access clipboard: " + error.message); // Pesan kesalahan jika terjadi
+    }
+}
+
+    </script>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Input</h2>
+        <form onsubmit="event.preventDefault(); displayAirdropDetails();">
+            <div class="input-group">
+                <label for="project-name">Airdrop Name:</label>
+                <input type="text" id="project-name" name="project-name" placeholder="Enter project name">
+                <button type="button" class="delete-btn" onclick="clearInput('project-name')">x</button>
+            </div>
+
+            <div class="input-group">
+                <label for="funding">Funding:</label>
+                <input type="text" id="funding" name="funding" placeholder="Enter funding details" 
+       oninput="this.value = this.value.replace(/[^0-9.,]/g, '');">
+                <button type="button" class="modifier-btn" onclick="modifyFunding('K')">K</button>
+                <button type="button" class="modifier-btn" onclick="modifyFunding('M')">M</button>
+                <button type="button" class="modifier-btn" onclick="modifyFunding('B')">B</button>
+                <button type="button" class="delete-btn" onclick="clearInput('funding')">x</button>
+            </div>
+
+            <label>Type:</label>
+            <div class="checkbox-group type-checkbox">
+                <label><input type="checkbox" value="Incentivized Testnet"> Incentivized Testnet</label>
+                <label><input type="checkbox" value="Waitlist / Whitelist"> Waitlist / Whitelist</label>
+                <label><input type="checkbox" value="Social Media"> Social Media</label>
+                <label><input type="checkbox" value="Register Web"> Register Web</label>
+                <label><input type="checkbox" value="Retro"> Retro</label>
+                <label><input type="checkbox" value="Giveaway"> Giveaway</label>
+            </div>
+
+            <div class="input-group">
+                <label for="link-to-join">Link to Join:</label>
+                <input type="url" id="link-to-join" name="link-to-join" placeholder="https://example.com" onblur="ensureHttps(this)">
+                <button type="button" class="delete-btn" onclick="clearInput('link-to-join')">x</button>
+            </div>
+
+            <div class="input-group">
+                <label for="codes">Codes:</label>
+                <input type="text" id="codes" name="codes" placeholder="Enter codes">
+                <button type="button" class="delete-btn" onclick="clearInput('codes')">x</button>
+            </div>
+
+            <label>How:</label>
+            <div class="checkbox-group how-checkbox">
+                <label><input type="checkbox" value="Submit Details"> Submit Details</label>
+                <label><input type="checkbox" value="Connect Wallet"> Connect Wallet</label>
+                <label><input type="checkbox" value="Connect Socmed"> Connect Socmed</label>
+                <label><input type="checkbox" value="Daily Login / Checkin"> Daily Login / Checkin</label>
+                <label><input type="checkbox" value="Push On-chain Transactions"> Push On-chain Transactions</label>
+            </div>
+
+            <div class="input-group">
+                <label for="deadline">Deadline to participate:</label>
+                <input type="date" id="deadline" name="deadline">
+                <button type="button" class="delete-btn" onclick="clearInput('deadline')">x</button>
+            </div>
+
+            <label>Useful Links:</label>
+            <div class="useful-links">
+                <div class="input-group">
+                    <input type="url" placeholder="Enter useful link" onblur="ensureHttps(this)">
+                    <button type="button" class="delete-btn" onclick="this.parentElement.remove()">x</button>
+                </div>
+            </div>
+            <button type="button" class="add-btn" onclick="addUsefulLinkInput()">+</button>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <h2>Output</h2>
+        <div id="output" class="output">
+            <!-- Output akan muncul di sini -->
+        </div>
+        <button class="copy-btn" onclick="copyOutput()">Copy Output</button>
+        <button class="download-btn" onclick="downloadImageFromClipboard()">Download Image</button>
+    </div>
+
+</body>
+</html>
