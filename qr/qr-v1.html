@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px; /* Tetapkan lebar untuk container */
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #007bff;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #qr-codes {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%; /* Buat container QR Code memenuhi lebar */
+        }
+
+        .qr-code-item {
+            margin: 10px 0;
+            width: 256px; /* Fixed width for QR code item */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .qr-text {
+            display: flex;
+            align-items: center; /* Center align all items vertically */
+            justify-content: flex-start; /* Align items to the left */
+            width: 100%; /* Make it full width */
+            position: relative; /* Set position to relative for absolute children */
+            padding: 5px 10px; /* Add padding for better spacing */
+            font-size: 16px; /* Adjust font size for uniformity */
+            background-color: #f8f8f8; /* Light background for better contrast */
+            border-radius: 5px; /* Round the corners */
+            overflow: hidden; /* Hide overflow */
+        }
+
+        .qr-text-content {
+            display: flex;
+            align-items: center;
+            overflow-x: auto; /* Allow horizontal scrolling */
+            white-space: nowrap; /* Prevent text wrapping */
+            flex-grow: 1; /* Allow this part to grow */
+            padding-right: 30px; /* Add padding to make space for icons */
+        }
+
+        .download-icon {
+            width: 20px; /* Set icon size */
+            height: 20px; /* Set icon size */
+            cursor: pointer;
+            position: absolute; /* Absolute positioning for floating effect */
+            right: 40px; /* Adjust distance from right */
+            top: 50%; /* Center vertically */
+            transform: translateY(-50%); /* Adjust for vertical centering */
+        }
+
+        .delete-text {
+            color: red; /* Set color for delete "X" */
+            cursor: pointer; /* Change cursor to pointer */
+            position: absolute; /* Absolute positioning for floating effect */
+            right: 10px; /* Adjust distance from right */
+            top: 50%; /* Center vertically */
+            transform: translateY(-50%); /* Adjust for vertical centering */
+            font-size: 16px; /* Ensure size matches */
+            line-height: 1; /* Adjust line height for better alignment */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QR Code Generator</h1>
+        <input type="text" id="text" placeholder="Enter text here" />
+        <button onclick="generateQRCode()">Generate QR Code</button>
+        <div id="qr-codes"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        function generateQRCode() {
+            const text = document.getElementById('text').value;
+            const qrCodesContainer = document.getElementById('qr-codes');
+
+            if (text) {
+                const qrCodeItem = document.createElement('div');
+                qrCodeItem.className = 'qr-code-item';
+
+                // Create a numbered text display
+                const index = qrCodesContainer.children.length + 1; // Get current index
+                const qrTextContainer = document.createElement('div');
+                qrTextContainer.className = 'qr-text';
+                
+                // Create a content wrapper for scrollable text
+                const qrTextContent = document.createElement('div');
+                qrTextContent.className = 'qr-text-content';
+                qrTextContent.innerHTML = `${index}. ${text}`;
+
+                // Create download icon
+                const downloadIcon = document.createElement('img');
+                downloadIcon.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnmjBVA8Y6lBWfZAFeJaXeYW2S93y8fW1BQA&s";
+                downloadIcon.className = 'download-icon';
+                downloadIcon.onclick = () => downloadQRCode(text); // Call download function on click
+
+                // Add delete text next to the text
+                const deleteText = document.createElement('span');
+                deleteText.textContent = 'X';
+                deleteText.className = 'delete-text';
+                deleteText.onclick = () => deleteQRCode(qrCodeItem); // Call delete function on click
+
+                // Append content, download icon, and delete text to QR text container
+                qrTextContainer.appendChild(qrTextContent);
+                qrTextContainer.appendChild(downloadIcon); // Append download icon
+                qrTextContainer.appendChild(deleteText); // Append delete text
+
+                // Append text and delete text to QR code item
+                qrCodeItem.appendChild(qrTextContainer);
+
+                const qrCode = new QRCode(qrCodeItem, {
+                    text: text,
+                    width: 256,
+                    height: 256,
+                });
+
+                // Add the QR code item to the container
+                qrCodesContainer.appendChild(qrCodeItem);
+            }
+        }
+
+        function deleteQRCode(qrCodeItem) {
+            qrCodeItem.remove(); // Remove the QR code from the display
+        }
+
+        function downloadQRCode(text) {
+            const filename = text.split(' ')[0] + '.jpg'; // Use first word of text as filename
+            const qrCodeItem = document.createElement('div');
+            const qrCode = new QRCode(qrCodeItem, {
+                text: text,
+                width: 256,
+                height: 256,
+            });
+
+            // Wait for the QR code to render, then download
+            setTimeout(() => {
+                const canvas = qrCodeItem.querySelector('canvas');
+                const imageURL = canvas.toDataURL('image/jpeg');
+                const link = document.createElement('a');
+                link.href = imageURL;
+                link.download = filename; // Set the filename
+                link.click(); // Trigger download
+            }, 100);
+        }
+    </script>
+</body>
+</html>
