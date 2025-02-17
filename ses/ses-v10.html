@@ -298,6 +298,7 @@
         <select id="sourceSelect" disabled>
             <option value="">-- Pilih Sumber Mesin Pencari --</option>
         </select>
+        <div id="content"></div>
     </div>
 
     <div id="writeTab" class="tab-content">
@@ -339,20 +340,26 @@
     let history = [];
     let historyIndex = -1;
 
-    document.getElementById('fileInput','fileloadButton').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (file && file.type === "text/plain") {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                searchEngines = e.target.result.split('\n').filter(url => url.trim() !== '');
-                populateSourceSelect(searchEngines, 'sourceSelect');
-                alert('File uploaded successfully!');
-                document.getElementById('sourceSelect').disabled = false;
-            };
-            reader.readAsText(file);
-        } else {
-            alert('Please upload a valid .txt file.');
-        }
+    document.getElementById('fileloadButton').addEventListener('click', function() {
+        // Menggunakan fetch untuk memuat file
+        fetch('../assets/sources.txt') // Path disesuaikan
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Gagal memuat file.');
+                }
+                return response.text();
+            })
+            .then(data => {
+                // Menampilkan isi file ke dalam elemen dengan id "content"
+                document.getElementById('content').textContent = data;
+                // Optionally, you can also populate the source select with the loaded data
+                const sources = data.split('\n').filter(url => url.trim() !== '');
+                populateSourceSelect(sources, 'sourceSelect');
+                document.getElementById('sourceSelect').disabled = false; // Enable the select after loading
+            })
+            .catch(error => {
+                console.error('Terjadi kesalahan:', error);
+            });
     });
 
     function switchTab(tabName) {
@@ -516,28 +523,9 @@
     }
     // blocking the ads after iframe loaded
     var frames = document.getElementsByTagName('iframe');
-for (var frame of frames) {
-    frame.setAttribute("sandbox", "allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-scripts allow-top-navigation allow-forms");
-}
-
-// Menambahkan event listener ke tombol load
-document.getElementById('fileloadButton').addEventListener('click', function() {
-            // Menggunakan fetch untuk memuat file
-            fetch('../assets/sources.txt') // Path disesuaikan
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Gagal memuat file.');
-                    }
-                    return response.text();
-                })
-                .then(data => {
-                    // Menampilkan isi file ke dalam elemen dengan id "sourceSelect"
-                    document.getElementById('sourceSelect').textContent = data;
-                })
-                .catch(error => {
-                    console.error('Terjadi kesalahan:', error);
-                });
-        });
+    for (var frame of frames) {
+        frame.setAttribute("sandbox", "allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-scripts allow-top-navigation allow-forms");
+    }
 </script>
 
 </body>
