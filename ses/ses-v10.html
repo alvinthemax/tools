@@ -340,8 +340,24 @@
     let history = [];
     let historyIndex = -1;
 
+    // Function to handle file upload
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file && file.type === "text/plain") {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const newSources = e.target.result.split('\n').filter(url => url.trim() !== '');
+                addSources(newSources);
+                alert('File uploaded successfully!');
+            };
+            reader.readAsText(file);
+        } else {
+            alert('Please upload a valid .txt file.');
+        }
+    });
+
+    // Function to handle loading file from a path
     document.getElementById('fileloadButton').addEventListener('click', function() {
-        // Menggunakan fetch untuk memuat file
         fetch('../assets/sources.txt') // Path disesuaikan
             .then(response => {
                 if (!response.ok) {
@@ -350,17 +366,25 @@
                 return response.text();
             })
             .then(data => {
-                // Menampilkan isi file ke dalam elemen dengan id "content"
-                document.getElementById('content').textContent = data;
-                // Optionally, you can also populate the source select with the loaded data
-                const sources = data.split('\n').filter(url => url.trim() !== '');
-                populateSourceSelect(sources, 'sourceSelect');
-                document.getElementById('sourceSelect').disabled = false; // Enable the select after loading
+                const newSources = data.split('\n').filter(url => url.trim() !== '');
+                addSources(newSources);
+                alert('File loaded successfully!');
             })
             .catch(error => {
                 console.error('Terjadi kesalahan:', error);
             });
     });
+
+    // Function to add sources and filter duplicates
+    function addSources(newSources) {
+        newSources.forEach(source => {
+            if (!savedSources.includes(source)) {
+                savedSources.push(source);
+            }
+        });
+        populateSourceSelect(savedSources, 'sourceSelect');
+        document.getElementById('sourceSelect').disabled = false; // Enable the select after loading
+    }
 
     function switchTab(tabName) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -387,10 +411,14 @@
             alert("Please enter a valid source.");
             return;
         }
-        savedSources.push(newSource);
-        populateSourceSelect(savedSources, 'savedSourcesSelect');
+        if (!savedSources.includes(newSource)) {
+            savedSources.push(newSource);
+            populateSourceSelect(savedSources, 'savedSourcesSelect');
+            document.getElementById('savedSourcesSelect').disabled = false;
+        } else {
+            alert("Source already exists.");
+        }
         document.getElementById('writeSourceInput').value = '';
-        document.getElementById('savedSourcesSelect').disabled = false;
     }
 
     function performSearch() {
@@ -408,7 +436,7 @@
                 alert("Please select a search engine.");
                 return;
             }
-            selectedEngine = searchEngines[selectedIndex];
+            selectedEngine = savedSources[selectedIndex];
         } else {
             const selectedIndex = document.getElementById('savedSourcesSelect').value;
             if (selectedIndex === "") {
