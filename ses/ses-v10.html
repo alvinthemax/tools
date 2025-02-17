@@ -111,7 +111,7 @@
 
         /* Modal */
         .modal {
-            display: none;
+            display: none; /* Modal tidak ditampilkan secara default */
             position: fixed;
             z-index: 1;
             left: 0;
@@ -120,17 +120,17 @@
             height: 100%;
             overflow: auto;
             background-color: rgba(0, 0, 0, 0.4);
-            padding-top: 60px;
+            justify-content: center; /* Center horizontally */
         }
 
         .modal-content {
             background-color: #fff;
-            margin: 2% auto; /* Adjusted margin to move the modal up */
+            margin: 0; /* Set margin to 0 */
             padding: 20px;
             border-radius: 10px;
             width: 90%;
             max-width: 800px;
-            height: 80%;
+            height: auto; /* Set height to auto to fit content */
             position: relative;
         }
 
@@ -457,7 +457,7 @@
         document.getElementById('modalLink').href = currentPageUrl; // Use currentPageUrl
         document.getElementById('modalIframe').src = currentPageUrl; // Use currentPageUrl
         document.getElementById('loadingSpinner').style.display = 'block';
-        document.getElementById('myModal').style.display = 'block';
+        document.getElementById('myModal').style.display = 'flex'; // Use flex to center modal horizontally
     }
 
     function getDomainName(url) {
@@ -544,7 +544,7 @@
             document.getElementById('modalLink').textContent = getDomainName(currentPageUrl);
             document.getElementById('modalLink').href = currentPageUrl;
             document.getElementById('modalIframe').src = currentPageUrl;
-            document.getElementById('myModal').style.display = 'block';
+            document.getElementById('myModal').style.display = 'flex'; // Use flex to center modal horizontally
         } else {
             alert("No search result available to open in modal.");
         }
