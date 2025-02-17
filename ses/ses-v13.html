@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Engine</title>
+    <style>
+        /* Overall Style */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+        }
+
+        /* Tab Container */
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 2px;
+            background-color: #4CAF50;
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+        }
+
+        .tab-content {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* File Upload */
+        #fileInput {
+            margin-bottom: 10px;
+        }
+
+        /* Dropdown */
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        /* Input and Button */
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 0;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            height: auto;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        #modalLink {
+            display: inline-block;
+            margin-right: 10px;
+            color: #4CAF50;
+            text-decoration: none;
+            font-size: 14px;
+            max-width: 50%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .modal-buttons {
+            display: flex;
+            align-items: center;
+        }
+
+        #editLinkInput {
+            width: 50%;
+            margin-right: 10px;
+            display: none;
+        }
+
+        button {
+            flex: 1;
+            margin: 0 5px;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Suggestion Box */
+        .suggestion-box {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 5px;
+            z-index: 1000;
+        }
+
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="tab-container">
+        <button class="tab-button active" onclick="switchTab('upload')">📁 Upload</button>
+        <button class="tab-button" onclick="switchTab('write')">✏️ Write</button>
+        <button class="tab-button" onclick="switchTab('link')">🔗 Link</button>
+    </div>
+
+    <div id="uploadTab" class="tab-content active">
+        <input type="file" id="fileInput" accept=".txt">
+        <button id="fileloadButton">Load File</button>
+        <br><br>
+        <select id="sourceSelect" disabled>
+            <option value="">-- Pilih Sumber Mesin Pencari --</option>
+        </select>
+        <div id="content"></div>
+    </div>
+
+    <div id="writeTab" class="tab-content">
+        <input type="text" id="writeSourceInput" placeholder="Enter a new source">
+        <div id="writeSuggestionBox" class="suggestion-box">
+            <div class="suggestion-item" onclick="addHttpsToWriteSource()">https://<span id="writeSuggestionValue"></span></div>
+        </div>
+        <button id="writeSourceButton" onclick="addSource()">➕</button>
+        <div id="savedSources">
+            <select id="savedSourcesSelect" disabled>
+                <option value="">-- Pilih Sumber yang Disimpan --</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="linkTab" class="tab-content">
+        <input type="text" id="linkInput" placeholder="Enter a link">
+        <div id="linkSuggestionBox" class="suggestion-box">
+            <div class="suggestion-item" onclick="addHttpsToLinkInput()">https://<span id="linkSuggestionValue"></span></div>
+        </div>
+        <button onclick="openLink()">Open Link</button>
+        <div id="historyContainer">
+            <h3>History</h3>
+            <div id="linkHistory"></div>
+        </div>
+    </div>
+
+    <br><br>
+    <div id="searchContainer">
+        <input type="text" id="searchInput" placeholder="Enter your search query">
+        <button onclick="performSearch()">Search</button>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="myModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div class="modal-buttons">
+            <button id="backButton" onclick="toggleHistoryList()" disabled>Back</button>
+            <button id="copyLinkButton" onclick="copyLink()">Copy Link</button>
+            <input type="text" id="editLinkInput" style="display: none;" />
+            <div id="editSuggestionBox" class="suggestion-box">
+                <div class="suggestion-item" onclick="addHttpsToEditLink()">https://<span id="editSuggestionValue"></span></div>
+            </div>
+            <a id="modalLink" href="#" target="_blank"></a>
+            <button id="editLinkButton" onclick="toggleEditLink()">📝</button>
+        </div>
+        <div class="loading-spinner" id="loadingSpinner"></div>
+        <iframe id="modalIframe" width="100%" height="100%" style="border:none;" onload="hideLoadingSpinner()"></iframe>
+        <div id="historyList">
+            <!-- History items will be dynamically added here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    let searchEngines = [];
+    let currentPageUrl = "";
+    let currentQuery = "";
+    let savedSources = [];
+    let history = [];
+    let historyIndex = -1;
+    let linkHistory = [];
+
+    // Fungsi untuk menampilkan suggestion box
+    function showSuggestionBox(inputId, suggestionBoxId, suggestionValueId) {
+        const suggestionBox = document.getElementById(suggestionBoxId);
+        const inputValue = document.getElementById(inputId).value.trim();
+
+        // Periksa apakah nilai sudah mengandung "https://"
+        if (inputValue && !inputValue.startsWith('https://')) {
+            document.getElementById(suggestionValueId).textContent = inputValue;
+            suggestionBox.style.display = 'block';
+        } else {
+            suggestionBox.style.display = 'none';
+        }
+    }
+
+    // Fungsi untuk menambahkan "https://" ke writeSourceInput
+    function addHttpsToWriteSource() {
+        const writeSourceInput = document.getElementById('writeSourceInput');
+        const inputValue = writeSourceInput.value.trim();
+
+        // Tambahkan "https://" hanya jika belum ada
+        if (inputValue && !inputValue.startsWith('https://')) {
+            writeSourceInput.value = 'https://' + inputValue;
+        }
+        document.getElementById('writeSuggestionBox').style.display = 'none';
+    }
+
+    // Fungsi untuk menambahkan "https://" ke linkInput
+    function addHttpsToLinkInput() {
+        const linkInput = document.getElementById('linkInput');
+        const inputValue = linkInput.value.trim();
+
+        // Tambahkan "https://" hanya jika belum ada
+        if (inputValue && !inputValue.startsWith('https://')) {
+            linkInput.value = 'https://' + inputValue;
+        }
+        document.getElementById('linkSuggestionBox').style.display = 'none';
+    }
+
+    // Fungsi untuk menambahkan "https://" ke editLinkInput
+    function addHttpsToEditLink() {
+        const editLinkInput = document.getElementById('editLinkInput');
+        const inputValue = editLinkInput.value.trim();
+
+        // Tambahkan "https://" hanya jika belum ada
+        if (inputValue && !inputValue.startsWith('https://')) {
+            editLinkInput.value = 'https://' + inputValue;
+        }
+        document.getElementById('editSuggestionBox').style.display = 'none';
+    }
+
+    // Event listener untuk writeSourceInput
+    document.getElementById('writeSourceInput').addEventListener('click', function() {
+        showSuggestionBox('writeSourceInput', 'writeSuggestionBox', 'writeSuggestionValue');
+    });
+
+    document.getElementById('writeSourceInput').addEventListener('input', function() {
+        showSuggestionBox('writeSourceInput', 'writeSuggestionBox', 'writeSuggestionValue');
+    });
+
+    document.getElementById('writeSourceInput').addEventListener('blur', function() {
+        setTimeout(() => {
+            document.getElementById('writeSuggestionBox').style.display = 'none';
+        }, 200);
+    });
+
+    // Event listener untuk linkInput
+    document.getElementById('linkInput').addEventListener('click', function() {
+        showSuggestionBox('linkInput', 'linkSuggestionBox', 'linkSuggestionValue');
+    });
+
+    document.getElementById('linkInput').addEventListener('input', function() {
+        showSuggestionBox('linkInput', 'linkSuggestionBox', 'linkSuggestionValue');
+    });
+
+    document.getElementById('linkInput').addEventListener('blur', function() {
+        setTimeout(() => {
+            document.getElementById('linkSuggestionBox').style.display = 'none';
+        }, 200);
+    });
+
+    // Event listener untuk editLinkInput
+    document.getElementById('editLinkInput').addEventListener('click', function() {
+        showSuggestionBox('editLinkInput', 'editSuggestionBox', 'editSuggestionValue');
+    });
+
+    document.getElementById('editLinkInput').addEventListener('input', function() {
+        showSuggestionBox('editLinkInput', 'editSuggestionBox', 'editSuggestionValue');
+    });
+
+    document.getElementById('editLinkInput').addEventListener('blur', function() {
+        setTimeout(() => {
+            document.getElementById('editSuggestionBox').style.display = 'none';
+        }, 200);
+    });
+
+        // Function to handle file upload
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file && file.type === "text/plain") {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const newSources = e.target.result.split('\n').filter(url => url.trim() !== '');
+                addSources(newSources);
+                alert('File uploaded successfully!');
+            };
+            reader.readAsText(file);
+        } else {
+            alert('Please upload a valid .txt file.');
+        }
+    });
+
+    // Function to handle loading file from a path
+    document.getElementById('fileloadButton').addEventListener('click', function() {
+        fetch('../assets/sources.txt') // Path disesuaikan
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Gagal memuat file.');
+                }
+                return response.text();
+            })
+            .then(data => {
+                const newSources = data.split('\n').filter(url => url.trim() !== '');
+                addSources(newSources);
+                alert('File loaded successfully!');
+            })
+            .catch(error => {
+                console.error('Terjadi kesalahan:', error);
+            });
+    });
+
+    // Function to add sources and filter duplicates
+    function addSources(newSources) {
+        newSources.forEach(source => {
+            if (!savedSources.includes(source)) {
+                savedSources.push(source);
+            }
+        });
+        populateSourceSelect(savedSources, 'sourceSelect');
+        document.getElementById('sourceSelect').disabled = false; // Enable the select after loading
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+
+        document.getElementById(`${tabName}Tab`).classList.add('active');
+        document.querySelector(`button[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+        // Sembunyikan kolom query & tombol search di tab "Link"
+        if (tabName === 'link') {
+            document.getElementById('searchContainer').style.display = 'none';
+        } else {
+            document.getElementById('searchContainer').style.display = 'block';
+        }
+    }
+
+    function populateSourceSelect(engines, selectId) {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">-- Pilih Sumber Mesin Pencari --</option>';
+        engines.forEach((engine, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = engine;
+            select.appendChild(option);
+        });
+    }
+
+    function addSource() {
+        const newSource = document.getElementById('writeSourceInput').value.trim();
+        if (newSource === "") {
+            alert("Please enter a valid source.");
+            return;
+        }
+        if (!savedSources.includes(newSource)) {
+            savedSources.push(newSource);
+            populateSourceSelect(savedSources, 'savedSourcesSelect');
+            document.getElementById('savedSourcesSelect').disabled = false;
+        } else {
+            alert("Source already exists.");
+        }
+        document.getElementById('writeSourceInput').value = '';
+    }
+
+    function performSearch() {
+        const query = document.getElementById('searchInput').value.trim();
+        if (query === "") {
+            alert("Please enter a search query.");
+            return;
+        }
+
+        let selectedEngine = "";
+        const uploadTabActive = document.getElementById('uploadTab').classList.contains('active');
+        if (uploadTabActive) {
+            const selectedIndex = document.getElementById('sourceSelect').value;
+            if (selectedIndex === "") {
+                alert("Please select a search engine.");
+                return;
+            }
+            selectedEngine = savedSources[selectedIndex];
+        } else {
+            const selectedIndex = document.getElementById('savedSourcesSelect').value;
+            if (selectedIndex === "") {
+                alert("Please select a saved source.");
+                return;
+            }
+            selectedEngine = savedSources[selectedIndex];
+        }
+
+        currentPageUrl = selectedEngine + encodeURIComponent(query); // Store the current page URL
+        currentQuery = query; // Store the current query
+
+        // Simpan riwayat tautan
+        addToHistory(currentPageUrl, currentQuery);
+
+        // Tampilkan tautan hasil pencarian di dalam modal
+        document.getElementById('modalLink').textContent = getDomainName(currentPageUrl);
+        document.getElementById('modalLink').href = currentPageUrl; // Use currentPageUrl
+        document.getElementById('modalIframe').src = currentPageUrl; // Use currentPageUrl
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('myModal').style.display = 'flex'; // Use flex to center modal horizontally
+    }
+
+    function getDomainName(url) {
+        try {
+            const urlObj = new URL(url);
+            return urlObj.hostname.replace('www.', ''); // Remove 'www.' from the domain name
+        } catch (e) {
+            return "Unknown Source"; // Return default text if URL is invalid
+        }
+    }
+
+    function addToHistory(url, query) {
+        if (history.length >= 10) {
+            history.shift(); // Hapus tautan tertua jika sudah mencapai 10
+        }
+        history.push({ url, query }); // Store an object with both URL and query
+        historyIndex = history.length - 1;
+        updateBackButton();
+    }
+
+    function toggleHistoryList() {
+        const historyList = document.getElementById('historyList');
+        if (historyList.classList.contains('show')) {
+            historyList.classList.remove('show');
+            setTimeout(() => {
+                historyList.style.display = "none";
+            }, 300); // Match the duration of the CSS transition
+        } else {
+            historyList.style.display = "block";
+            historyList.classList.add('show');
+            updateHistoryList();
+        }
+    }
+
+    function updateHistoryList() {
+        const historyList = document.getElementById('historyList');
+        historyList.innerHTML = ''; // Clear existing items
+
+        history.forEach(item => {
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.textContent = `${getDomainName(item.url)} - Query: ${item.query}`; // Show both URL and query
+            historyItem.onclick = () => {
+                currentPageUrl = item.url; // Update currentPageUrl with the selected link
+                document.getElementById('modalLink').textContent = getDomainName(currentPageUrl);
+                document.getElementById('modalLink').href = currentPageUrl;
+                document.getElementById('modalIframe').src = currentPageUrl; // Reload iframe with the new link
+                toggleHistoryList(); // Hide the history list
+            };
+            historyList.appendChild(historyItem);
+        });
+    }
+
+    function updateBackButton() {
+        const backButton = document.getElementById('backButton');
+        backButton.disabled = historyIndex <= 0;
+    }
+
+    function closeModal() {
+        document.getElementById('myModal').style.display = 'none';
+        // Do not reset the modal content here
+    }
+
+    function copyLink() {
+        if (currentPageUrl) {
+            navigator.clipboard.writeText(currentPageUrl)
+                .then(() => {
+                    alert("Link copied to clipboard!");
+                })
+                .catch(() => {
+                    alert("Failed to copy link.");
+                });
+        } else {
+            alert("No link available to copy.");
+        }
+    }
+
+    function hideLoadingSpinner() {
+        document.getElementById('loadingSpinner').style.display = 'none';
+    }
+
+    function openLink() {
+        const link = document.getElementById('linkInput').value.trim();
+        if (link === "") {
+            alert("Please enter a valid link.");
+            return;
+        }
+
+        // Open link in modal
+        currentPageUrl = link; // Update currentPageUrl
+        document.getElementById('modalLink').textContent = getDomainName(currentPageUrl);
+        document.getElementById('modalLink').href = currentPageUrl;
+        document.getElementById('modalIframe').src = currentPageUrl;
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('myModal').style.display = 'flex';
+
+        // Save link to history
+        addLinkToHistory(currentPageUrl);
+    }
+
+    function addLinkToHistory(link) {
+        if (!linkHistory.includes(link)) {
+            linkHistory.push(link);
+            updateLinkHistoryDisplay();
+        }
+    }
+
+    function updateLinkHistoryDisplay() {
+        const historyContainer = document.getElementById('linkHistory');
+        historyContainer.innerHTML = ''; // Clear existing history
+        linkHistory.forEach(link => {
+            const historyItem = document.createElement('div');
+            historyItem.textContent = link;
+            historyItem.className = 'history-item';
+            historyItem.onclick = () => {
+                currentPageUrl = link; // Update currentPageUrl with the selected link
+                document.getElementById('modalLink').textContent = getDomainName(currentPageUrl);
+                document.getElementById('modalLink').href = currentPageUrl;
+                document.getElementById('modalIframe').src = currentPageUrl; // Reload iframe with the new link
+            };
+            historyContainer.appendChild(historyItem);
+        });
+    }
+
+    function toggleEditLink() {
+        const editLinkButton = document.getElementById('editLinkButton');
+        const modalLink = document.getElementById('modalLink');
+        const editLinkInput = document.getElementById('editLinkInput');
+
+        if (editLinkButton.textContent === "📝") {
+            // Masuk ke mode edit
+            editLinkInput.value = currentPageUrl; // Set input dengan URL saat ini
+            modalLink.style.display = 'none'; // Sembunyikan link
+            editLinkInput.style.display = 'block'; // Tampilkan input
+            editLinkButton.textContent = "🔍"; // Ubah tombol menjadi ikon pencarian
+        } else {
+            // Simpan perubahan dan keluar dari mode edit
+            currentPageUrl = editLinkInput.value; // Ambil nilai dari input
+            modalLink.textContent = getDomainName(currentPageUrl); // Perbarui teks link
+            modalLink.href = currentPageUrl; // Perbarui href link
+            modalLink.style.display = 'block'; // Tampilkan kembali link
+            editLinkInput.style.display = 'none'; // Sembunyikan input
+            editLinkButton.textContent = "📝"; // Kembali ke ikon edit
+            document.getElementById('modalIframe').src = currentPageUrl; // Muat ulang iframe dengan URL baru
+        }
+    }
+
+    // blocking the ads after iframe loaded
+    var frames = document.getElementsByTagName('iframe');
+    for (var frame of frames) {
+        frame.setAttribute("sandbox", "allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-scripts allow-top-navigation allow-forms");
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+    const editLinkInput = document.getElementById("editLinkInput");
+
+    // Mencegah perilaku default agar input bisa menerima drop
+    editLinkInput.addEventListener("dragover", function (event) {
+        event.preventDefault();
+        editLinkInput.style.border = "2px dashed #4CAF50";
+    });
+
+    // Mengembalikan border ke kondisi normal setelah drag keluar
+    editLinkInput.addEventListener("dragleave", function () {
+        editLinkInput.style.border = "1px solid #ddd";
+    });
+
+    // Mengisi input dengan teks yang didrop
+    editLinkInput.addEventListener("drop", function (event) {
+        event.preventDefault();
+        editLinkInput.style.border = "1px solid #ddd";
+
+        const droppedText = event.dataTransfer.getData("text");
+        if (droppedText) {
+            editLinkInput.value = droppedText; // Isi input dengan teks yang diseret
+        }
+    });
+});
+</script>
+</body>
+</html>
