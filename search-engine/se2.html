@@ -319,13 +319,6 @@
         let searchHistory = [];
         let clickCount = 0; // Untuk menghitung klik pada ikon pencarian
 
-        const messages = [
-            "Coba Lagi",
-            "Apa yang kamu cari?",
-            "Satu kali lagi",
-            "Kamu menemukan Easter Egg"
-        ];
-
         function toggleTheme() {
             document.body.classList.toggle('dark-mode');
             const themeToggleButton = document.querySelector('.theme-toggle');
@@ -352,28 +345,13 @@
         function openSearch() {
             const inputText = searchInput.value.trim(); // Menghapus spasi di awal dan akhir
             const selectedEngine = document.querySelector('#list .selected');
-            if (inputText) {
-                clickCount = 0; // Reset hitungan jika input tidak kosong
-            } else {
-                clickCount++; // Tambah hitungan jika input kosong
-                if (clickCount === 1) {
-                    // Tidak ada pesan untuk klik pertama
-                } else if (clickCount === 2) {
-                    alert(messages[0]); // Pesan "Coba Lagi"
-                } else if (clickCount === 3) {
-                    alert(messages[1]); // Pesan "Apa yang kamu cari?"
-                } else if (clickCount === 4) {
-                    alert(messages[2]); // Pesan "Satu kali lagi"
-                } else if (clickCount === 5) {
-                    alert(messages[3]); // Pesan "Kamu menemukan Easter Egg"
-                    const confirmation = confirm("Ingin membuka advanced search engine?");
-                    if (confirmation) {
-                        window.open("https://alvinthemax.github.io/tools/advanced-search-engine/ase.html", '_self'); // Buka di tab saat ini
-                    }
-                    clickCount = 0; // Reset hitungan setelah konfirmasi
-                }
+
+            if (!inputText) {
+                alert("Tambahkan input terlebih dahulu"); // Pesan jika input kosong
                 return; // Tidak melanjutkan pencarian jika input kosong
             }
+
+            clickCount = 0; // Reset hitungan jika input tidak kosong
 
             if (!selectedEngine) {
                 alert('Please select a search engine.');
@@ -448,23 +426,15 @@
         searchLogo.addEventListener('click', function() {
             const inputText = searchInput.value.trim();
             clickCount++;
-            if (inputText) {
-                clickCount = 0; // Reset hitungan jika input tidak kosong
-                return; // Tidak menampilkan pesan jika input tidak kosong
+            if (!inputText) {
+                alert("Tambahkan input terlebih dahulu"); // Pesan jika input kosong
+                return; // Tidak melanjutkan pencarian jika input kosong
             }
-            if (clickCount === 1) {
-                // Tidak ada pesan untuk klik pertama
-            } else if (clickCount === 2) {
-                alert(messages[0]); // Pesan "Coba Lagi"
-            } else if (clickCount === 3) {
-                alert(messages[1]); // Pesan "Apa yang kamu cari?"
-            } else if (clickCount === 4) {
-                alert(messages[2]); // Pesan "Satu kali lagi"
-            } else if (clickCount === 5) {
-                alert(messages[3]); // Pesan "Kamu menemukan Easter Egg"
-                const confirmation = confirm("Ingin membuka advanced search engine?");
+
+            if (clickCount === 5) {
+                const confirmation = confirm("Apakah kamu ingin membuka advanced search engine?");
                 if (confirmation) {
-                    window.open("https://alvinthemax.github.io/tools/advanced-search-engine/ase.html", '_self'); // Buka di tab saat ini
+                    window.open("https://alvinthemax.github.io/tools/advanced-search-engine/ase.html", '_blank'); // Buka di tab baru
                 }
                 clickCount = 0; // Reset hitungan setelah konfirmasi
             }
