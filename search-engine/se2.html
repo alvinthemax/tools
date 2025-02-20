@@ -347,7 +347,16 @@
             const selectedEngine = document.querySelector('#list .selected');
 
             if (!inputText) {
-                alert("Tambahkan input terlebih dahulu"); // Pesan jika input kosong
+                clickCount++; // Tambah hitungan jika input kosong
+                if (clickCount === 1) {
+                    alert("Tambahkan input terlebih dahulu"); // Pesan jika input kosong
+                } else if (clickCount === 5) {
+                    const confirmation = confirm("Apakah kamu ingin membuka advanced search engine?");
+                    if (confirmation) {
+                        window.open("https://alvinthemax.github.io/tools/advanced-search-engine/ase.html", '_self'); // Buka di tab saat ini
+                    }
+                    clickCount = 0; // Reset hitungan setelah konfirmasi
+                }
                 return; // Tidak melanjutkan pencarian jika input kosong
             }
 
@@ -427,18 +436,18 @@
             const inputText = searchInput.value.trim();
             clickCount++;
             if (!inputText) {
-                alert("Tambahkan input terlebih dahulu"); // Pesan jika input kosong
+                if (clickCount === 5) {
+                    const confirmation = confirm("Apakah kamu ingin membuka advanced search engine?");
+                    if (confirmation) {
+                        window.open("https://alvinthemax.github.io/tools/advanced-search-engine/ase.html", '_self'); // Buka di tab saat ini
+                    }
+                    clickCount = 0; // Reset hitungan setelah konfirmasi
+                }
                 return; // Tidak melanjutkan pencarian jika input kosong
             }
 
-            if (clickCount === 5) {
-                const confirmation = confirm("Apakah kamu ingin membuka advanced search engine?");
-                if (confirmation) {
-                    window.open("https://alvinthemax.github.io/tools/advanced-search-engine/ase.html", '_blank'); // Buka di tab baru
-                }
-                clickCount = 0; // Reset hitungan setelah konfirmasi
-            }
+            clickCount = 0; // Reset hitungan jika input tidak kosong
         });
     </script>
 </body>
-</html>
+            </html>
