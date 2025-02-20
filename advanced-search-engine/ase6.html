@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Engine</title>
+    <style>
+        /* Overall Style */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+        }
+
+        /* Tab Container */
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 2px;
+            background-color: #4CAF50;
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+        }
+
+        .tab-content {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* File Upload */
+        #fileInput {
+            margin-bottom: 10px;
+        }
+
+        /* Dropdown */
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        /* Input and Button */
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            height: 80%;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        #modalLink {
+            display: inline-block;
+            margin-right: 10px;
+            color: #4CAF50;
+            text-decoration: none;
+            font-size: 14px;
+            max-width: 50%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .modal-buttons {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        #backButton {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        #backButton:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        #copyLinkButton {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        #copyLinkButton:hover {
+            background-color: #45a049;
+        }
+
+        iframe {
+            width: 100%;
+            height: calc(100% - 50px);
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Write Tab */
+        #writeSourceInput {
+            width: calc(100% - 70px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        #writeSourceButton {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        #writeSourceButton:hover {
+            background-color: #45a049;
+        }
+
+        #savedSources {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="tab-container">
+        <button class="tab-button active" onclick="switchTab('upload')">📁 Upload</button>
+        <button class="tab-button" onclick="switchTab('write')">✏️ Write</button>
+    </div>
+
+    <div id="uploadTab" class="tab-content active">
+        <input type="file" id="fileInput" accept=".txt">
+        <br><br>
+        <select id="sourceSelect" disabled>
+            <option value="">-- Pilih Sumber Mesin Pencari --</option>
+        </select>
+    </div>
+
+    <div id="writeTab" class="tab-content">
+        <input type="text" id="writeSourceInput" placeholder="Enter a new source">
+        <button id="writeSourceButton" onclick="addSource()">➕</button>
+        <div id="savedSources">
+            <select id="savedSourcesSelect" disabled>
+                <option value="">-- Pilih Sumber yang Disimpan --</option>
+            </select>
+        </div>
+    </div>
+
+    <br><br>
+    <input type="text" id="searchInput" placeholder="Enter your search query">
+    <button onclick="performSearch()">Search</button>
+</div>
+
+<div id="myModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div class="modal-buttons">
+            <button id="backButton" onclick="goBack()" disabled>Back</button>
+            <button id="copyLinkButton" onclick="copyLink()">Copy Link</button>
+        </div>
+        <a id="modalLink" href="#" target="_blank"></a>
+        <div class="loading-spinner" id="loadingSpinner"></div>
+        <iframe id="modalIframe" width="100%" height="100%" style="border:none;" onload="hideLoadingSpinner()"></iframe>
+    </div>
+</div>
+
+<script>
+    let searchEngines = [];
+    let currentSearchUrl = "";
+    let savedSources = [];
+    let history = [];
+    let historyIndex = -1;
+
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file && file.type === "text/plain") {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                searchEngines = e.target.result.split('\n').filter(url => url.trim() !== '');
+                populateSourceSelect(searchEngines, 'sourceSelect');
+                alert('File uploaded successfully!');
+                document.getElementById('sourceSelect').disabled = false;
+            };
+            reader.readAsText(file);
+        } else {
+            alert('Please upload a valid .txt file.');
+        }
+    });
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+
+        document.getElementById(`${tabName}Tab`).classList.add('active');
+        document.querySelector(`button[onclick="switchTab('${tabName}')"]`).classList.add('active');
+    }
+
+    function populateSourceSelect(engines, selectId) {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">-- Pilih Sumber Mesin Pencari --</option>';
+        engines.forEach((engine, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = engine;
+            select.appendChild(option);
+        });
+    }
+
+    function addSource() {
+        const newSource = document.getElementById('writeSourceInput').value.trim();
+        if (newSource === "") {
+            alert("Please enter a valid source.");
+            return;
+        }
+        savedSources.push(newSource);
+        populateSourceSelect(savedSources, 'savedSourcesSelect');
+        document.getElementById('writeSourceInput').value = '';
+        document.getElementById('savedSourcesSelect').disabled = false;
+    }
+
+    function performSearch() {
+        const query = document.getElementById('searchInput').value.trim();
+        if (query === "") {
+            alert("Please enter a search query.");
+            return;
+        }
+
+        let selectedEngine = "";
+        const uploadTabActive = document.getElementById('uploadTab').classList.contains('active');
+        if (uploadTabActive) {
+            const selectedIndex = document.getElementById('sourceSelect').value;
+            if (selectedIndex === "") {
+                alert("Please select a search engine.");
+                return;
+            }
+            selectedEngine = searchEngines[selectedIndex];
+        } else {
+            const selectedIndex = document.getElementById('savedSourcesSelect').value;
+            if (selectedIndex === "") {
+                alert("Please select a saved source.");
+                return;
+            }
+            selectedEngine = savedSources[selectedIndex];
+        }
+
+        currentSearchUrl = selectedEngine + encodeURIComponent(query);
+
+        const openInModal = confirm("Do you want to open the search result in a modal?");
+        if (openInModal) {
+            addToHistory(currentSearchUrl);
+            const domainName = getDomainName(selectedEngine);
+            document.getElementById('modalLink').textContent = domainName;
+            document.getElementById('modalLink').href = currentSearchUrl;
+            document.getElementById('modalIframe').src = currentSearchUrl;
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('myModal').style.display = 'block';
+        } else {
+            window.open(currentSearchUrl, '_blank');
+        }
+    }
+
+    function getDomainName(url) {
+        try {
+            const urlObj = new URL(url);
+            return urlObj.hostname.replace('www.', ''); // Menghapus 'www.' dari nama domain
+        } catch (e) {
+            return "Unknown Source"; // Jika URL tidak valid, kembalikan teks default
+        }
+    }
+
+    function addToHistory(url) {
+        history = history.slice(0, historyIndex + 1); // Hapus riwayat setelah indeks saat ini
+        history.push(url);
+        historyIndex = history.length - 1;
+        updateBackButton();
+    }
+
+    function goBack() {
+        if (historyIndex > 0) {
+            historyIndex--;
+            const previousUrl = history[historyIndex];
+            const domainName = getDomainName(previousUrl);
+            document.getElementById('modalIframe').src = previousUrl;
+            document.getElementById('modalLink').textContent = domainName;
+            document.getElementById('modalLink').href = previousUrl;
+            updateBackButton();
+        }
+    }
+
+    function updateBackButton() {
+        const backButton = document.getElementById('backButton');
+        backButton.disabled = historyIndex <= 0;
+    }
+
+    function closeModal() {
+        document.getElementById('myModal').style.display = 'none';
+        document.getElementById('modalIframe').src = '';
+        document.getElementById('modalLink').textContent = '';
+        document.getElementById('modalLink').href = '#';
+        currentSearchUrl = "";
+        history = [];
+        historyIndex = -1;
+        updateBackButton();
+    }
+
+    function copyLink() {
+        if (currentSearchUrl) {
+            navigator.clipboard.writeText(currentSearchUrl)
+                .then(() => {
+                    alert("Link copied to clipboard!");
+                })
+                .catch(() => {
+                    alert("Failed to copy link.");
+                });
+        } else {
+            alert("No link available to copy.");
+        }
+    }
+
+    function hideLoadingSpinner() {
+        document.getElementById('loadingSpinner').style.display = 'none';
+    }
+    // Fungsi untuk menyimpan data ke localStorage
+function saveToLocalStorage() {
+    localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
+    localStorage.setItem('savedSources', JSON.stringify(savedSources));
+    localStorage.setItem('currentSearchUrl', currentSearchUrl);
+    localStorage.setItem('history', JSON.stringify(history));
+    localStorage.setItem('historyIndex', historyIndex);
+    localStorage.setItem('isModalOpen', document.getElementById('myModal').style.display === 'block');
+}
+
+// Fungsi untuk memuat data dari localStorage
+function loadFromLocalStorage() {
+    const storedSearchEngines = localStorage.getItem('searchEngines');
+    const storedSavedSources = localStorage.getItem('savedSources');
+    const storedCurrentSearchUrl = localStorage.getItem('currentSearchUrl');
+    const storedHistory = localStorage.getItem('history');
+    const storedHistoryIndex = localStorage.getItem('historyIndex');
+    const isModalOpen = localStorage.getItem('isModalOpen') === 'true';
+
+    if (storedSearchEngines) {
+        searchEngines = JSON.parse(storedSearchEngines);
+        populateSourceSelect(searchEngines, 'sourceSelect');
+        document.getElementById('sourceSelect').disabled = false;
+    }
+
+    if (storedSavedSources) {
+        savedSources = JSON.parse(storedSavedSources);
+        populateSourceSelect(savedSources, 'savedSourcesSelect');
+        document.getElementById('savedSourcesSelect').disabled = false;
+    }
+
+    if (storedCurrentSearchUrl) {
+        currentSearchUrl = storedCurrentSearchUrl;
+    }
+
+    if (storedHistory) {
+        history = JSON.parse(storedHistory);
+        historyIndex = parseInt(storedHistoryIndex);
+        updateBackButton();
+    }
+
+    if (isModalOpen && currentSearchUrl) {
+        const domainName = getDomainName(currentSearchUrl);
+        document.getElementById('modalLink').textContent = domainName;
+        document.getElementById('modalLink').href = currentSearchUrl;
+        document.getElementById('modalIframe').src = currentSearchUrl;
+        document.getElementById('myModal').style.display = 'block';
+    }
+}
+
+// Panggil fungsi loadFromLocalStorage saat halaman dimuat
+window.onload = loadFromLocalStorage;
+
+// Simpan data ke localStorage saat file diupload
+document.getElementById('fileInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file && file.type === "text/plain") {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            searchEngines = e.target.result.split('\n').filter(url => url.trim() !== '');
+            populateSourceSelect(searchEngines, 'sourceSelect');
+            alert('File uploaded successfully!');
+            document.getElementById('sourceSelect').disabled = false;
+            saveToLocalStorage(); // Simpan ke localStorage
+        };
+        reader.readAsText(file);
+    } else {
+        alert('Please upload a valid .txt file.');
+    }
+});
+
+// Simpan data ke localStorage saat modal dibuka
+function performSearch() {
+    const query = document.getElementById('searchInput').value.trim();
+    if (query === "") {
+        alert("Please enter a search query.");
+        return;
+    }
+
+    let selectedEngine = "";
+    const uploadTabActive = document.getElementById('uploadTab').classList.contains('active');
+    if (uploadTabActive) {
+        const selectedIndex = document.getElementById('sourceSelect').value;
+        if (selectedIndex === "") {
+            alert("Please select a search engine.");
+            return;
+        }
+        selectedEngine = searchEngines[selectedIndex];
+    } else {
+        const selectedIndex = document.getElementById('savedSourcesSelect').value;
+        if (selectedIndex === "") {
+            alert("Please select a saved source.");
+            return;
+        }
+        selectedEngine = savedSources[selectedIndex];
+    }
+
+    currentSearchUrl = selectedEngine + encodeURIComponent(query);
+
+    const openInModal = confirm("Do you want to open the search result in a modal?");
+    if (openInModal) {
+        addToHistory(currentSearchUrl);
+        const domainName = getDomainName(selectedEngine);
+        document.getElementById('modalLink').textContent = domainName;
+        document.getElementById('modalLink').href = currentSearchUrl;
+        document.getElementById('modalIframe').src = currentSearchUrl;
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('myModal').style.display = 'block';
+        saveToLocalStorage(); // Simpan ke localStorage
+    } else {
+        window.open(currentSearchUrl, '_blank');
+    }
+}
+
+// Simpan data ke localStorage saat modal ditutup
+function closeModal() {
+    document.getElementById('myModal').style.display = 'none';
+    document.getElementById('modalIframe').src = '';
+    document.getElementById('modalLink').textContent = '';
+    document.getElementById('modalLink').href = '#';
+    currentSearchUrl = "";
+    history = [];
+    historyIndex = -1;
+    updateBackButton();
+    saveToLocalStorage(); // Simpan ke localStorage
+}
+    // Fungsi untuk menyimpan URL yang sedang dibuka ke localStorage
+function saveCurrentUrl(url) {
+    localStorage.setItem('currentUrl', url);
+}
+
+// Fungsi untuk memuat URL yang sedang dibuka dari localStorage
+function loadCurrentUrl() {
+    const storedCurrentUrl = localStorage.getItem('currentUrl');
+    if (storedCurrentUrl) {
+        const domainName = getDomainName(storedCurrentUrl);
+        document.getElementById('modalLink').textContent = domainName;
+        document.getElementById('modalLink').href = storedCurrentUrl;
+        document.getElementById('modalIframe').src = storedCurrentUrl;
+        document.getElementById('myModal').style.display = 'block';
+    }
+}
+
+// Panggil fungsi loadCurrentUrl saat halaman dimuat
+window.onload = function() {
+    loadFromLocalStorage(); // Memuat data lainnya dari localStorage
+    loadCurrentUrl(); // Memuat URL yang sedang dibuka
+};
+
+// Simpan URL yang sedang dibuka saat modal dibuka
+function performSearch() {
+    const query = document.getElementById('searchInput').value.trim();
+    if (query === "") {
+        alert("Please enter a search query.");
+        return;
+    }
+
+    let selectedEngine = "";
+    const uploadTabActive = document.getElementById('uploadTab').classList.contains('active');
+    if (uploadTabActive) {
+        const selectedIndex = document.getElementById('sourceSelect').value;
+        if (selectedIndex === "") {
+            alert("Please select a search engine.");
+            return;
+        }
+        selectedEngine = searchEngines[selectedIndex];
+    } else {
+        const selectedIndex = document.getElementById('savedSourcesSelect').value;
+        if (selectedIndex === "") {
+            alert("Please select a saved source.");
+            return;
+        }
+        selectedEngine = savedSources[selectedIndex];
+    }
+
+    currentSearchUrl = selectedEngine + encodeURIComponent(query);
+
+    const openInModal = confirm("Do you want to open the search result in a modal?");
+    if (openInModal) {
+        addToHistory(currentSearchUrl);
+        const domainName = getDomainName(selectedEngine);
+        document.getElementById('modalLink').textContent = domainName;
+        document.getElementById('modalLink').href = currentSearchUrl;
+        document.getElementById('modalIframe').src = currentSearchUrl;
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('myModal').style.display = 'block';
+        saveCurrentUrl(currentSearchUrl); // Simpan URL yang sedang dibuka
+        saveToLocalStorage(); // Simpan data lainnya ke localStorage
+    } else {
+        window.open(currentSearchUrl, '_blank');
+    }
+}
+
+// Hapus URL yang sedang dibuka saat modal ditutup
+function closeModal() {
+    document.getElementById('myModal').style.display = 'none';
+    document.getElementById('modalIframe').src = '';
+    document.getElementById('modalLink').textContent = '';
+    document.getElementById('modalLink').href = '#';
+    currentSearchUrl = "";
+    history = [];
+    historyIndex = -1;
+    updateBackButton();
+    localStorage.removeItem('currentUrl'); // Hapus URL yang sedang dibuka dari localStorage
+    saveToLocalStorage(); // Simpan data lainnya ke localStorage
+}
+    // Fungsi untuk mencegah link dengan target="_blank" di dalam modal
+function preventBlankTargetInModal() {
+    const modalIframe = document.getElementById('modalIframe');
+
+    // Tambahkan event listener ke iframe untuk memantau klik di dalamnya
+    modalIframe.addEventListener('load', function() {
+        const iframeDocument = modalIframe.contentDocument || modalIframe.contentWindow.document;
+
+        // Deteksi semua link di dalam iframe
+        const links = iframeDocument.getElementsByTagName('a');
+        for (let link of links) {
+            if (link.target === '_blank') {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault(); // Cegah perilaku default (membuka tab baru)
+                    modalIframe.src = link.href; // Buka link di dalam iframe yang sama
+                });
+            }
+        }
+    });
+}
+
+// Panggil fungsi preventBlankTargetInModal saat halaman dimuat
+window.onload = function() {
+    loadFromLocalStorage(); // Memuat data lainnya dari localStorage
+    loadCurrentUrl(); // Memuat URL yang sedang dibuka
+    preventBlankTargetInModal(); // Mencegah target="_blank" di dalam modal
+};
+
+// Panggil fungsi preventBlankTargetInModal saat modal dibuka
+function performSearch() {
+    const query = document.getElementById('searchInput').value.trim();
+    if (query === "") {
+        alert("Please enter a search query.");
+        return;
+    }
+
+    let selectedEngine = "";
+    const uploadTabActive = document.getElementById('uploadTab').classList.contains('active');
+    if (uploadTabActive) {
+        const selectedIndex = document.getElementById('sourceSelect').value;
+        if (selectedIndex === "") {
+            alert("Please select a search engine.");
+            return;
+        }
+        selectedEngine = searchEngines[selectedIndex];
+    } else {
+        const selectedIndex = document.getElementById('savedSourcesSelect').value;
+        if (selectedIndex === "") {
+            alert("Please select a saved source.");
+            return;
+        }
+        selectedEngine = savedSources[selectedIndex];
+    }
+
+    currentSearchUrl = selectedEngine + encodeURIComponent(query);
+
+    const openInModal = confirm("Do you want to open the search result in a modal?");
+    if (openInModal) {
+        addToHistory(currentSearchUrl);
+        const domainName = getDomainName(selectedEngine);
+        document.getElementById('modalLink').textContent = domainName;
+        document.getElementById('modalLink').href = currentSearchUrl;
+        document.getElementById('modalIframe').src = currentSearchUrl;
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('myModal').style.display = 'block';
+        saveCurrentUrl(currentSearchUrl); // Simpan URL yang sedang dibuka
+        saveToLocalStorage(); // Simpan data lainnya ke localStorage
+        preventBlankTargetInModal(); // Mencegah target="_blank" di dalam modal
+    } else {
+        window.open(currentSearchUrl, '_blank');
+    }
+}
+    // Daftar domain iklan yang akan diblokir
+const blockedAdDomains = [
+    'ads.example.com',
+    'doubleclick.net',
+    'adservice.google.com',
+    'ad.doubleclick.net',
+    'adclick.g.doubleclick.net',
+    'ad.yieldmanager.com',
+    'adserver.example.com',
+    // Tambahkan domain iklan lainnya di sini
+];
+
+// Fungsi untuk memeriksa apakah domain diblokir
+function isDomainBlocked(url) {
+    try {
+        const domain = new URL(url).hostname; // Ambil hostname dari URL
+        return blockedAdDomains.some(adDomain => domain.includes(adDomain));
+    } catch (e) {
+        console.error("Invalid URL:", url);
+        return false;
+    }
+}
+
+// Fungsi untuk mencegah redirect ke iklan di dalam modal
+function preventAdRedirectsInModal() {
+    const modalIframe = document.getElementById('modalIframe');
+
+    // Tambahkan event listener ke iframe untuk memantau klik di dalamnya
+    modalIframe.addEventListener('load', function() {
+        const iframeDocument = modalIframe.contentDocument || modalIframe.contentWindow.document;
+
+        // Deteksi semua link di dalam iframe
+        const links = iframeDocument.getElementsByTagName('a');
+        for (let link of links) {
+            link.addEventListener('click', function(event) {
+                const href = link.href;
+
+                // Periksa apakah domain tujuan diblokir
+                if (isDomainBlocked(href)) {
+                    event.preventDefault(); // Cegah perilaku default
+                    alert("Link ini diblokir karena mengarah ke situs iklan.");
+                } else {
+                    // Buka link di dalam iframe yang sama
+                    modalIframe.src = href;
+                    event.preventDefault(); // Cegah perilaku default (membuka tab baru)
+                }
+            });
+        }
+    });
+}
+
+// Panggil fungsi preventAdRedirectsInModal saat halaman dimuat
+window.onload = function() {
+    loadFromLocalStorage(); // Memuat data lainnya dari localStorage
+    loadCurrentUrl(); // Memuat URL yang sedang dibuka
+    preventAdRedirectsInModal(); // Mencegah redirect ke iklan di dalam modal
+};
+
+// Panggil fungsi preventAdRedirectsInModal saat modal dibuka
+function performSearch() {
+    const query = document.getElementById('searchInput').value.trim();
+    if (query === "") {
+        alert("Please enter a search query.");
+        return;
+    }
+
+    let selectedEngine = "";
+    const uploadTabActive = document.getElementById('uploadTab').classList.contains('active');
+    if (uploadTabActive) {
+        const selectedIndex = document.getElementById('sourceSelect').value;
+        if (selectedIndex === "") {
+            alert("Please select a search engine.");
+            return;
+        }
+        selectedEngine = searchEngines[selectedIndex];
+    } else {
+        const selectedIndex = document.getElementById('savedSourcesSelect').value;
+        if (selectedIndex === "") {
+            alert("Please select a saved source.");
+            return;
+        }
+        selectedEngine = savedSources[selectedIndex];
+    }
+
+    currentSearchUrl = selectedEngine + encodeURIComponent(query);
+
+    const openInModal = confirm("Do you want to open the search result in a modal?");
+    if (openInModal) {
+        addToHistory(currentSearchUrl);
+        const domainName = getDomainName(selectedEngine);
+        document.getElementById('modalLink').textContent = domainName;
+        document.getElementById('modalLink').href = currentSearchUrl;
+        document.getElementById('modalIframe').src = currentSearchUrl;
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('myModal').style.display = 'block';
+        saveCurrentUrl(currentSearchUrl); // Simpan URL yang sedang dibuka
+        saveToLocalStorage(); // Simpan data lainnya ke localStorage
+        preventAdRedirectsInModal(); // Mencegah redirect ke iklan di dalam modal
+    } else {
+        window.open(currentSearchUrl, '_blank');
+    }
+}
+</script>
+
+</body>
+</html>
