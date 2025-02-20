@@ -110,6 +110,10 @@
             justify-content: space-between;
             align-items: center;
             color: #333; /* Warna teks gelap */
+            max-width: 100%; /* Memastikan lebar item tidak melebihi kontainer */
+            overflow: hidden; /* Menyembunyikan teks yang melampaui */
+            text-overflow: ellipsis; /* Menambahkan elipsis untuk teks yang terlalu panjang */
+            white-space: nowrap; /* Mencegah teks membungkus ke baris baru */
         }
         body.dark-mode .history-item {
             background-color: #444; /* Warna latar item history gelap */
@@ -120,14 +124,6 @@
         }
         body.dark-mode .history-item:hover {
             background-color: #555; /* Warna hover item history gelap */
-        }
-        .copy-icon {
-            cursor: pointer;
-            font-size: 18px;
-            color: #333; /* Warna ikon gelap */
-        }
-        body.dark-mode .copy-icon {
-            color: #f0f0f0; /* Warna ikon terang */
         }
         .modal {
             display: none;
@@ -183,13 +179,19 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.3s;
         }
         .list li:hover {
             background-color: #ddd; /* Warna hover item list terang */
         }
         body.dark-mode .list li:hover {
             background-color: #555; /* Warna hover item list gelap */
+        }
+        .list li.selected {
+            background-color: #2ecc71; /* Warna latar item terpilih */
+            color: white; /* Warna teks item terpilih */
+            transform: scale(1.05); /* Efek pembesaran */
+            border-radius: 5px; /* Sudut melengkung */
         }
         .close-btn {
             padding: 10px;
@@ -236,10 +238,30 @@
         .theme-toggle:hover {
             color: #007bff; /* Warna hover tombol toggle tema */
         }
+        .go-to-link {
+            cursor: pointer;
+            font-size: 18px;
+            color: #007bff; /* Warna ikon link */
+            margin-left: 10px;
+            transition: color 0.3s;
+        }
+        .go-to-link:hover {
+            color: #0056b3; /* Warna hover ikon link */
+        }
+        .copy-icon {
+            cursor: pointer;
+            font-size: 18px;
+            color: #007bff; /* Warna ikon copy */
+            margin-left: 10px; /* Margin untuk menjaga jarak */
+            transition: color 0.3s;
+        }
+        .copy-icon:hover {
+            color: #0056b3; /* Warna hover ikon copy */
+        }
     </style>
 </head>
 <body>
-    <button class="theme-toggle" onclick="toggleTheme()">🌙</button> <!-- Simbol untuk toggle tema -->
+    <button class="theme-toggle" onclick="toggleTheme()">☀️</button> <!-- Simbol untuk toggle tema -->
     <div class="input-unit">
         <input type="text" id="searchInput" placeholder="Type here..." />
         <button class="open-popup" onclick="openPopup()" id="engineButton">Select Engine</button>
@@ -294,7 +316,7 @@
         function toggleTheme() {
             document.body.classList.toggle('dark-mode');
             const themeToggleButton = document.querySelector('.theme-toggle');
-            themeToggleButton.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙'; // Ganti simbol
+            themeToggleButton.textContent = document.body.classList.contains('dark-mode') ? '🌙' : '☀️'; // Ganti simbol
         }
 
         function openPopup() {
@@ -349,7 +371,7 @@
                 searchLogo.style.display = 'inline';
             }, 1000);
 
-            searchHistory.push({ query: inputText, engine: engineName });
+            searchHistory.push({ query: inputText, engine: engineName, url: engineUrls[engineName] });
             updateHistory();
         }
 
@@ -361,7 +383,11 @@
                 searchHistory.forEach(item => {
                     const historyItem = document.createElement('div');
                     historyItem.classList.add('history-item');
-                    historyItem.innerHTML = `${item.query} on ${item.engine} <span class="copy-icon" onclick="copyHistoryText('${item.query}')">📋</span>`;
+                    historyItem.innerHTML = `
+                        <span style="flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.query} on ${item.engine}</span>
+                        <span class="go-to-link" onclick="openHistoryLink('${item.url}')">🔗</span>
+                        <span class="copy-icon" onclick="copyHistoryText('${item.query}')">📋</span>
+                    `;
                     historySection.appendChild(historyItem);
                 });
             }
@@ -373,13 +399,13 @@
             });
         }
 
+        function openHistoryLink(url) {
+            window.open(url, '_blank'); // Membuka link di tab baru
+        }
+
         function toggleHistory() {
             const historySection = document.getElementById('historySection');
-            if (historySection.style.display === 'none') {
-                historySection.style.display = 'block';
-            } else {
-                historySection.style.display = 'none';
-            }
+            historySection.style.display = (historySection.style.display === 'none' || historySection.style.display === '') ? 'block' : 'none';
         }
     </script>
 </body>
