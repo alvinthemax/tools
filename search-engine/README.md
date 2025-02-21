@@ -1,7 +1,7 @@
 # Tool Name : Search Engine
-Latest Tool :
 #
+Latest Tool :
 - [se.html](https://alvinthemax.github.io/tools/search-engine/se.html)
 #
-Featured Tool :
-#
+Unique Version :
+- [n/a]
