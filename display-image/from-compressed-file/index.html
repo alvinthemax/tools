@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Gambar</title>
+    <style>
+        img {
+            max-width: 100px; /* Ukuran maksimum gambar */
+            margin: 10px; /* Jarak antar gambar */
+        }
+    </style>
+</head>
+<body>
+    <h1>Unggah Gambar</h1>
+    <input type="file" id="fileInput" accept="image/*" multiple>
+    <div id="imagePreview"></div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const imagePreview = document.getElementById('imagePreview');
+
+        fileInput.addEventListener('change', function() {
+            // Kosongkan preview sebelumnya
+            imagePreview.innerHTML = '';
+
+            const files = fileInput.files; // Ambil file yang diunggah
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader(); // Membaca file sebagai data URL
+
+                reader.onload = function(e) {
+                    const img = document.createElement('img'); // Membuat elemen img
+                    img.src = e.target.result; // Mengatur src gambar ke hasil pembacaan
+                    imagePreview.appendChild(img); // Menambahkan gambar ke div preview
+                };
+
+                reader.readAsDataURL(file); // Membaca file
+            }
+        });
+    </script>
+</body>
+</html>

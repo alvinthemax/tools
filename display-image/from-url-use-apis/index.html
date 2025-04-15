@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ekstraksi Gambar dari Website</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .image-container {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .loading {
+            font-size: 18px;
+            color: #555;
+        }
+        .error {
+            font-size: 18px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ekstraksi Gambar dari Website</h1>
+        <div>
+            <input type="text" id="websiteInput" placeholder="Masukkan URL website (contoh: https://example.com)">
+            <button onclick="loadImages()">🔍 Ekstrak Gambar</button>
+            <button id="retryButton" style="display: none;" onclick="retryLoad()">Gunakan API Lain</button>
+        </div>
+        <div id="imageContainer" class="image-container"></div>
+    </div>
+
+    <script>
+        const apis = [
+            "https://api.allorigins.win/get?url=",
+            "https://cors-anywhere.herokuapp.com/",
+            "https://jsonproxy.io/api/proxy?url="
+        ];
+        let currentApiIndex = 0;
+
+        async function loadImages() {
+            const url = document.getElementById("websiteInput").value;
+            const imageContainer = document.getElementById("imageContainer");
+            const retryButton = document.getElementById("retryButton");
+
+            if (!url.startsWith("http")) {
+                alert("Masukkan URL yang valid, harus dimulai dengan http:// atau https://");
+                return;
+            }
+
+            imageContainer.innerHTML = "<p class='loading'>Loading gambar...</p>";
+            retryButton.style.display = "none";
+
+            try {
+                const response = await fetch(apis[currentApiIndex] + encodeURIComponent(url));
+                if (!response.ok) throw new Error("API gagal dimuat");
+                const data = await response.json();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.contents || data, "text/html");
+
+                const images = doc.querySelectorAll("img");
+                imageContainer.innerHTML = "";
+
+                if (images.length === 0) {
+                    imageContainer.innerHTML = "<p class='error'>Tidak ada gambar yang ditemukan!</p>";
+                    return;
+                }
+
+                images.forEach(img => {
+                    let src = img.getAttribute("src");
+                    if (src) {
+                        if (!src.startsWith("http")) {
+                            let baseUrl = new URL(url);
+                            src = baseUrl.origin + src;
+                        }
+                        const imageElement = document.createElement("img");
+                        imageElement.src = src;
+                        imageContainer.appendChild(imageElement);
+                    }
+                });
+            } catch (error) {
+                if (currentApiIndex < apis.length - 1) {
+                    retryButton.style.display = "inline-block";
+                } else {
+                    imageContainer.innerHTML = "<p class='error'>Gagal memuat gambar dari semua API.</p>";
+                }
+            }
+        }
+
+        function retryLoad() {
+            currentApiIndex++;
+            loadImages();
+        }
+    </script>
+</body>
+</html>

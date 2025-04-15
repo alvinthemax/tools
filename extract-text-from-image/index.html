@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload, Tempel, atau Paste Gambar dan Ekstrak Teks</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.4/dist/tesseract.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #result {
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+        #extractButton {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #extractButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .image-preview {
+            max-width: 150px;
+            height: auto;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            padding: 5px;
+        }
+        .paste-area {
+            width: 200px;
+            height: 100px;
+            border: 2px dashed #007bff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .paste-area:hover {
+            background-color: #f0f8ff;
+        }
+        .loading {
+            display: none;
+            margin-top: 10px;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload, Tempel, atau Paste Gambar dan Ekstrak Teks</h1>
+
+    <input type="file" id="upload" accept="image/*" />
+    <div id="pasteArea" class="paste-area">Klik di sini untuk tempel gambar</div>
+    <input type="text" id="imageURL" placeholder="Masukkan URL gambar atau paste dari clipboard" style="width: 100%; margin-top: 10px; padding: 5px;" />
+    <button id="loadImageButton">Load Gambar</button>
+    <img id="imagePreview" class="image-preview" src="" alt="Preview Gambar" style="display: none;" />
+    <button id="extractButton" disabled>Extract Text</button>
+    <div class="loading" id="loading">Sedang memproses...</div>
+    <div id="result"></div>
+
+    <script>
+        let uploadedImage = null;
+
+        function displayImage(imageSrc) {
+            const imagePreview = document.getElementById('imagePreview');
+            imagePreview.src = imageSrc;
+            imagePreview.style.display = 'block';
+            uploadedImage = imageSrc;
+            document.getElementById('extractButton').disabled = false;
+        }
+
+        document.getElementById('upload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    displayImage(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('pasteArea').addEventListener('click', function() {
+            navigator.clipboard.read().then(data => {
+                for (const item of data) {
+                    if (item.types.includes('image/png')) {
+                        item.getType('image/png').then(blob => {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                displayImage(e.target.result);
+                            };
+                            reader.readAsDataURL(blob);
+                        });
+                    }
+                }
+            }).catch(err => {
+                alert("Tidak ada gambar di clipboard atau browser tidak mendukung fitur ini.");
+            });
+        });
+
+        document.getElementById('loadImageButton').addEventListener('click', function() {
+            const imageUrl = document.getElementById('imageURL').value.trim();
+            if (imageUrl) {
+                displayImage(imageUrl);
+            } else {
+                alert("Masukkan URL gambar yang valid.");
+            }
+        });
+
+        document.getElementById('imageURL').addEventListener('paste', function(event) {
+            navigator.clipboard.read().then(data => {
+                for (const item of data) {
+                    if (item.types.includes('image/png')) {
+                        item.getType('image/png').then(blob => {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                displayImage(e.target.result);
+                            };
+                            reader.readAsDataURL(blob);
+                        });
+                    }
+                }
+            }).catch(err => {
+                alert("Tidak ada gambar di clipboard atau browser tidak mendukung fitur ini.");
+            });
+        });
+
+        document.getElementById('extractButton').addEventListener('click', function() {
+            if (uploadedImage) {
+                const loadingElement = document.getElementById('loading');
+                const resultElement = document.getElementById('result');
+                loadingElement.style.display = 'block';
+                resultElement.innerText = '';
+
+                Tesseract.recognize(
+                    uploadedImage,
+                    'eng',
+                    {
+                        logger: m => console.log(m)
+                    }
+                ).then(({ data: { text } }) => {
+                    resultElement.innerText = text;
+                }).catch(error => {
+                    resultElement.innerText = "Error extracting text: " + error.message;
+                }).finally(() => {
+                    loadingElement.style.display = 'none';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

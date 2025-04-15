@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Slider with Dynamic Height</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .upload-container {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .upload-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .upload-label:hover {
+            background-color: #0056b3;
+        }
+
+        .upload-label i {
+            margin-right: 8px;
+        }
+
+        #file-upload, #folder-upload {
+            display: none;
+        }
+
+        .slider-container {
+            position: relative;
+            width: 80%;
+            max-width: 800px;
+            overflow: hidden;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide video {
+            max-width: 100%;
+            max-height: 80vh; /* Limit video height to 80% of viewport height */
+            display: block;
+        }
+
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 18px;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+
+        .prev:hover, .next:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+    </style>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <div class="upload-container">
+        <!-- File Upload Button -->
+        <label for="file-upload" class="upload-label">
+            <i class="fas fa-file-upload"></i> Upload Files
+        </label>
+        <input type="file" id="file-upload" multiple>
+
+        <!-- Folder Upload Button -->
+        <label for="folder-upload" class="upload-label">
+            <i class="fas fa-folder-open"></i> Upload Folder
+        </label>
+        <input type="file" id="folder-upload" webkitdirectory>
+    </div>
+
+    <div class="slider-container">
+        <div class="slider">
+            <!-- Slides will be dynamically added here -->
+        </div>
+        <button class="prev" onclick="prevSlide()">&#10094;</button>
+        <button class="next" onclick="nextSlide()">&#10095;</button>
+    </div>
+
+    <script>
+        const slider = document.querySelector('.slider');
+        const sliderContainer = document.querySelector('.slider-container');
+        const fileUpload = document.getElementById('file-upload');
+        const folderUpload = document.getElementById('folder-upload');
+        let currentIndex = 0;
+
+        // Function to handle file uploads
+        function handleFiles(files) {
+            slider.innerHTML = ''; // Clear existing slides
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.type.startsWith('video/')) {
+                    const slide = document.createElement('div');
+                    slide.className = 'slide';
+                    const video = document.createElement('video');
+                    video.src = URL.createObjectURL(file);
+                    video.controls = true;
+                    video.onloadedmetadata = () => {
+                        adjustSliderHeight(); // Adjust slider height when video metadata is loaded
+                    };
+                    slide.appendChild(video);
+                    slider.appendChild(slide);
+                }
+            }
+
+            currentIndex = 0;
+            updateSlider();
+        }
+
+        // Function to adjust slider container height based on the tallest video
+        function adjustSliderHeight() {
+            let maxHeight = 0;
+            const slides = document.querySelectorAll('.slide');
+
+            slides.forEach(slide => {
+                const video = slide.querySelector('video');
+                if (video && video.videoHeight > maxHeight) {
+                    maxHeight = video.videoHeight;
+                }
+            });
+
+            // Set the slider container height to the tallest video height
+            sliderContainer.style.height = `${maxHeight}px`;
+        }
+
+        // Event listener for file upload
+        fileUpload.addEventListener('change', (event) => {
+            const files = event.target.files;
+            handleFiles(files);
+        });
+
+        // Event listener for folder upload
+        folderUpload.addEventListener('change', (event) => {
+            const files = event.target.files;
+            handleFiles(files);
+        });
+
+        // Function to update the slider position
+        function updateSlider() {
+            slider.style.transform = `translateX(${-currentIndex * 100}%)`;
+        }
+
+        // Function to navigate to the next slide
+        function nextSlide() {
+            if (currentIndex < slider.children.length - 1) {
+                currentIndex++;
+                updateSlider();
+            }
+        }
+
+        // Function to navigate to the previous slide
+        function prevSlide() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateSlider();
+            }
+        }
+    </script>
+
+</body>
+</html>

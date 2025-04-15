@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Player</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      min-height: 100vh;
+      transition: 0.4s;
+    }
+
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .video-container {
+      position: relative;
+      width: 80%;
+      margin: 20px 0;
+    }
+
+    video {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 100%;
+      height: auto;
+      transition: 0.4s;
+    }
+
+    .video-placeholder {
+      width: 100%;
+      height: 400px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f0f0f0;
+      color: #777;
+      font-size: 18px;
+      text-align: center;
+      border-radius: 5px;
+    }
+
+    .control-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .control-button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .control-button:hover {
+      background-color: #e6e6e6;
+    }
+
+    .url-button {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 5px 25px;
+      font-size: 15px;
+      border: 1px solid black;
+      border-radius: 5px;
+      background-color: #007BFF;
+      color: white;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .url-button:hover {
+      background-color: #0056b3;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 10px 60px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+      text-align: center; /* Menengahkan teks dalam input */
+    }
+
+    .input-field-file {
+      width: 100%;
+      padding: 10px 20px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+      display: block;
+    }
+
+    .side-controls {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      margin: 0;
+      width: 20%;
+    }
+
+    /* Mode Mobile */
+    body.mobile-mode .main-container {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    body.mobile-mode video {
+      width: 100%;
+    }
+
+    /* Mode Desktop */
+    body.desktop-mode {
+      background-color: #fffaf0;
+    }
+
+    body.desktop-mode .main-container {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+
+    body.desktop-mode .video-container {
+      width: 60%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    body.desktop-mode video {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+    }
+
+    body.desktop-mode .side-controls {
+      margin-left: auto;
+      margin-top: 20px;
+      width: 25%;
+      align-items: flex-end; /* Menyelaraskan ke kanan */
+    }
+
+    body.desktop-mode .input-field {
+      font-size: 16px;
+      padding: 12px;
+    }
+
+    /* Tombol Switch */
+    .switch-container {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      text-align: center;
+      z-index: 10;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 25px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 25px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 19px;
+      width: 19px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #4CAF50;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(25px);
+    }
+
+    .status-text {
+      margin-top: 5px;
+      font-size: 12px;
+      color: #333;
+    }
+
+    /* Drag Area for Desktop */
+    .drag-area {
+      width: 100%;
+      padding: 20px;
+      border: 2px dashed #ccc;
+      border-radius: 5px;
+      text-align: center;
+      display: none;
+      margin-top: 10px;
+    }
+
+    body.desktop-mode .drag-area {
+      display: block;
+    }
+
+  </style>
+</head>
+<body class="mobile-mode">
+
+  <!-- Tombol Switch -->
+  <div class="switch-container">
+    <label class="switch">
+      <input type="checkbox" id="toggleSwitch" onchange="updateMode()">
+      <span class="slider"></span>
+    </label>
+    <div class="status-text" id="statusText">Mobile</div>
+  </div>
+
+  <div class="main-container">
+    <!-- Penampil Video -->
+    <div class="video-container" id="videoContainer">
+      <div class="video-placeholder" id="videoPlaceholder">Video belum dipilih</div>
+      <video id="videoPlayer" controls style="display:none;">
+        <source id="videoSource" type="video/mp4">
+        Browser Anda tidak mendukung video.
+      </video>
+
+      <!-- Tombol Prev dan Next -->
+      <div class="control-buttons">
+        <button class="control-button" onclick="playPrevVideo()">Prev</button>
+        <button class="control-button" onclick="playNextVideo()">Next</button>
+      </div>
+    </div>
+
+    <!-- Kontrol Samping -->
+    <div class="side-controls">
+      <input type="text" id="videoURL" class="input-field" placeholder="Masukkan URL Video">
+      <button class="url-button" onclick="addVideoFromURL()">Tambahkan URL</button>
+      <input 
+        type="file" 
+        id="uploadVideo" 
+        class="input-field-file" 
+        accept="video/*" 
+        onchange="addVideosFromFiles()">
+
+      <!-- Drag Area for Desktop -->
+      <div class="drag-area" id="dragArea">
+        Seret file atau folder video ke sini
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoSource = document.getElementById('videoSource');
+    const videoPlaceholder = document.getElementById('videoPlaceholder');
+    const videoQueue = []; // Daftar video yang akan diputar
+    let currentVideoIndex = 0; // Indeks video yang sedang diputar
+
+    function showPlaceholder() {
+      videoPlayer.style.display = 'none';
+      videoPlaceholder.style.display = 'flex';
+    }
+
+    function showVideo() {
+      videoPlaceholder.style.display = 'none';
+      videoPlayer.style.display = 'block';
+    }
+
+    function addVideoFromURL() {
+      const url = document.getElementById('videoURL').value;
+      if (url) {
+        videoQueue.push(url);
+        videoSource.src = url;
+        currentVideoIndex = videoQueue.length - 1; // Set ke video terakhir
+        showVideo();
+        videoPlayer.load();
+        videoPlayer.play();
+      }
+    }
+
+    function addVideosFromFiles() {
+      const files = document.getElementById('uploadVideo').files;
+      if (files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          const fileURL = URL.createObjectURL(files[i]);
+          videoQueue.push(fileURL);
+        }
+        // Set indeks ke video yang baru ditambahkan (video terakhir)
+        currentVideoIndex = videoQueue.length - 1;
+        
+        // Tampilkan video terbaru
+        videoSource.src = videoQueue[currentVideoIndex];
+        showVideo();
+        videoPlayer.load();
+        videoPlayer.play();
+      }
+    }
+
+    function playNextVideo() {
+      if (videoQueue.length > 1 && currentVideoIndex < videoQueue.length - 1) {
+        currentVideoIndex++;
+        videoSource.src = videoQueue[currentVideoIndex];
+        videoPlayer.load();
+        videoPlayer.play();
+      }
+    }
+
+    function playPrevVideo() {
+      if (videoQueue.length > 1 && currentVideoIndex > 0) {
+        currentVideoIndex--;
+        videoSource.src = videoQueue[currentVideoIndex];
+        videoPlayer.load();
+        videoPlayer.play();
+      }
+    }
+
+    function updateMode() {
+      const toggleSwitch = document.getElementById('toggleSwitch');
+      const statusText = document.getElementById('statusText');
+      const body = document.body;
+      const uploadVideo = document.getElementById('uploadVideo');
+      const dragArea = document.getElementById('dragArea');
+
+      if (toggleSwitch.checked) {
+        statusText.textContent = 'Desktop';
+        body.classList.remove('mobile-mode');
+        body.classList.add('desktop-mode');
+        uploadVideo.setAttribute('webkitdirectory', '');
+        dragArea.style.display = 'block'; // Menampilkan area seret
+      } else {
+        statusText.textContent = 'Mobile';
+        body.classList.remove('desktop-mode');
+        body.classList.add('mobile-mode');
+        uploadVideo.removeAttribute('webkitdirectory');
+        dragArea.style.display = 'none'; // Menyembunyikan area seret
+      }
+    }
+
+    // Mengelola event drag and drop untuk desktop
+    const dragArea = document.getElementById('dragArea');
+    dragArea.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      dragArea.style.backgroundColor = '#f0f0f0';
+    });
+
+    dragArea.addEventListener('dragleave', () => {
+      dragArea.style.backgroundColor = 'transparent';
+    });
+
+    dragArea.addEventListener('drop', (event) => {
+      event.preventDefault();
+      dragArea.style.backgroundColor = 'transparent';
+      const files = event.dataTransfer.files;
+      if (files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          const fileURL = URL.createObjectURL(files[i]);
+          videoQueue.push(fileURL);
+        }
+        currentVideoIndex = 0;
+        videoSource.src = videoQueue[currentVideoIndex];
+        showVideo();
+        videoPlayer.load();
+        videoPlayer.play();
+      }
+    });
+
+    showPlaceholder();
+  </script>
+</body>
+</html>

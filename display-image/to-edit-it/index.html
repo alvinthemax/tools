@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Cropper with Drag-and-Drop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 20px; }
+        .upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .drag-container {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            width: 300px;
+            text-align: center;
+            margin: auto;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .drag-container.drag-over {
+            background-color: #f0f0f0;
+        }
+        .preview-container {
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+            position: relative;
+        }
+        #image {
+            display: none;
+            width: 100%;
+            height: auto;
+        }
+        .dimensions-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .dimensions-container input {
+            width: 100px;
+            padding: 5px;
+            font-size: 16px;
+        }
+        .switch-icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 20px;
+            border: 1px solid #ccc;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            background-color: #f5f5f5;
+        }
+        .switch-icon:hover {
+            background-color: #e0e0e0;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <h2>Upload and Crop Image</h2>
+
+    <div class="upload-container">
+        <!-- Drag and Drop Area -->
+        <div class="drag-container" id="dragContainer">
+            Drag and drop a file here or click to select
+        </div>
+        <!-- Fallback File Input -->
+        <input type="file" id="upload" accept="image/*" style="display: none;">
+        <p id="uploadStatus" style="font-size: 14px; color: gray;">No file uploaded yet.</p>
+    </div>
+
+    <div class="preview-container">
+        <img id="image">
+    </div>
+
+    <div id="dimensionsInput" class="hidden">
+        <div class="dimensions-container">
+            <label for="cropWidth">Width:</label>
+            <input type="number" id="cropWidth" placeholder="Enter width">
+            
+            <!-- Icon Switch -->
+            <div class="switch-icon" onclick="switchDimensions()">
+                &#8597; <!-- Unicode arrow up-down -->
+            </div>
+            
+            <label for="cropHeight">Height:</label>
+            <input type="number" id="cropHeight" placeholder="Enter height">
+        </div>
+        <button onclick="applyInputConstraints()">Apply Dimensions</button>
+    </div>
+
+    <button id="runCropButton" class="hidden" onclick="runCrop()">Crop</button>
+
+    <div id="output"></div>
+
+    <div id="croppedImageContainer" class="hidden">
+        <h3>Cropped Image:</h3>
+        <img id="croppedOutput" style="max-width: 100%; display: block;">
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <script>
+        let cropper;
+
+        const dragContainer = document.getElementById('dragContainer');
+        const uploadInput = document.getElementById('upload');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const imageElement = document.getElementById('image');
+
+        // Drag and Drop Events
+        dragContainer.addEventListener('click', () => uploadInput.click());
+        dragContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dragContainer.classList.add('drag-over');
+        });
+        dragContainer.addEventListener('dragleave', () => dragContainer.classList.remove('drag-over'));
+        dragContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragContainer.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            handleFileUpload(file);
+        });
+
+        // File Input Change
+        uploadInput.addEventListener('change', function () {
+            const file = this.files[0];
+            handleFileUpload(file);
+        });
+
+        function handleFileUpload(file) {
+            if (file) {
+                uploadStatus.textContent = `File selected: ${file.name}`;
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    imageElement.src = event.target.result;
+                    imageElement.style.display = 'block';
+
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+
+                    cropper = new Cropper(imageElement, {
+                        aspectRatio: NaN,
+                        viewMode: 1
+                    });
+
+                    document.getElementById('dimensionsInput').classList.remove('hidden');
+                    document.getElementById('runCropButton').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                uploadStatus.textContent = 'No file uploaded.';
+            }
+        }
+
+        function switchDimensions() {
+            const widthInput = document.getElementById('cropWidth');
+            const heightInput = document.getElementById('cropHeight');
+            const temp = widthInput.value;
+            widthInput.value = heightInput.value;
+            heightInput.value = temp;
+        }
+
+        function applyInputConstraints() {
+            const cropWidth = parseInt(document.getElementById('cropWidth').value);
+            const cropHeight = parseInt(document.getElementById('cropHeight').value);
+
+            if (cropWidth && cropHeight && cropper) {
+                cropper.setAspectRatio(cropWidth / cropHeight);
+                cropper.setCropBoxData({
+                    width: cropWidth,
+                    height: cropHeight
+                });
+            }
+        }
+
+        function runCrop() {
+            const croppedCanvas = cropper.getCroppedCanvas();
+            const croppedOutput = document.getElementById('croppedOutput');
+            const croppedImageContainer = document.getElementById('croppedImageContainer');
+
+            if (croppedCanvas) {
+                croppedOutput.src = croppedCanvas.toDataURL();
+                croppedImageContainer.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

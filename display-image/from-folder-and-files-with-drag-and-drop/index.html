@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Sort & Modal View</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .upload-area.drag-over {
+            border-color: #4CAF50;
+            background-color: #e8f5e9;
+        }
+        .upload-area p {
+            margin: 10px 0;
+            color: #666;
+        }
+        .upload-area i {
+            font-size: 48px;
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        .upload-options {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 15px;
+        }
+        .upload-options p {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .upload-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .upload-btn {
+            padding: 8px 15px;
+            border: 1px solid #4CAF50;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-btn:hover {
+            background-color: #45a049;
+            border-color: #45a049;
+        }
+        .hidden-input {
+            display: none;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .container img {
+            max-width: 200px;
+            height: auto;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .container img:hover {
+            transform: scale(1.05);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        .close, .prev, .next {
+            position: absolute;
+            color: white;
+            font-size: 2em;
+            cursor: pointer;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: none;
+            padding: 10px;
+        }
+        .close {
+            top: 20px;
+            right: 20px;
+        }
+        .prev {
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .next {
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .switch-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            z-index: 101;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .mode-text {
+            margin-left: 10px;
+            font-size: 1em;
+            color: white;
+        }
+        .scrolling {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .scrolling img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            margin: 10px 0;
+        }
+        .default {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .default img {
+            max-width: 90vw;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h2>Image Gallery Upload</h2>
+    
+    <div class="upload-area" id="dropArea">
+        <i>⬆️</i>
+        <p>Drag & Drop files here</p>
+        
+        <div class="upload-options">
+            <p>Upload from:</p>
+            <div class="upload-buttons">
+                <button class="upload-btn" id="folderBtn">Folder</button>
+                <button class="upload-btn" id="singleBtn">Single</button>
+                <button class="upload-btn" id="multiBtn">Multi</button>
+            </div>
+        </div>
+        
+        <!-- Hidden file inputs -->
+        <input type="file" id="folderInput" webkitdirectory multiple class="hidden-input">
+        <input type="file" id="singleInput" class="hidden-input">
+        <input type="file" id="multiInput" multiple class="hidden-input">
+    </div>
+    
+    <div class="controls">
+        <h3>Sort By:</h3>
+        <select id="sortSelect">
+            <option value="alpha">Alphabetical (A-Z)</option>
+            <option value="numeric">Numerical (0-9)</option>
+            <option value="reverse">Reverse Alphabetical (Z-A)</option>
+            <option value="natural">Natural Order (1-100)</option>
+            <option value="extension">Group by Extension</option>
+        </select>
+    </div>
+
+    <div class="container" id="file-container"></div>
+
+    <!-- Modal -->
+    <div id="myModal" class="modal">
+        <div class="switch-container">
+            <label class="switch">
+                <input type="checkbox" id="modeSwitch">
+                <span class="slider"></span>
+            </label>
+            <span class="mode-text" id="modeText">Default</span>
+        </div>
+
+        <span class="close" onclick="closeModal()">&times;</span>
+        <span class="prev" onclick="showPrevImage()">&#10094;</span>
+        <div class="modal-content" id="modalContent">
+            <img id="modalImage" src="" alt="">
+        </div>
+        <span class="next" onclick="showNextImage()">&#10095;</span>
+    </div>
+
+    <script>
+        let files = [];
+        let images = [];
+        let currentImageIndex = 0;
+
+        // Get DOM elements
+        const dropArea = document.getElementById('dropArea');
+        const folderBtn = document.getElementById('folderBtn');
+        const singleBtn = document.getElementById('singleBtn');
+        const multiBtn = document.getElementById('multiBtn');
+        const folderInput = document.getElementById('folderInput');
+        const singleInput = document.getElementById('singleInput');
+        const multiInput = document.getElementById('multiInput');
+        const sortSelect = document.getElementById('sortSelect');
+        const modeSwitch = document.getElementById('modeSwitch');
+        const modeText = document.getElementById('modeText');
+
+        // Button click handlers
+        folderBtn.addEventListener('click', () => folderInput.click());
+        singleBtn.addEventListener('click', () => singleInput.click());
+        multiBtn.addEventListener('click', () => multiInput.click());
+
+        // File input change handlers
+        folderInput.addEventListener('change', handleFiles);
+        singleInput.addEventListener('change', handleFiles);
+        multiInput.addEventListener('change', handleFiles);
+
+        // Event listeners for drag and drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropArea.classList.add('drag-over');
+        }
+
+        function unhighlight() {
+            dropArea.classList.remove('drag-over');
+        }
+
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        // Remove the click handler for the drop area
+        // dropArea.addEventListener('click', () => singleInput.click());
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const newFiles = Array.from(dt.files);
+            handleNewFiles(newFiles);
+        }
+
+        function handleFiles(e) {
+            const newFiles = Array.from(e.target.files);
+            handleNewFiles(newFiles);
+        }
+
+        function handleNewFiles(newFiles) {
+            files = [...files, ...newFiles];
+            
+            // Filter images and create object URLs
+            images = files
+                .filter(file => file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
+                .map(file => ({
+                    name: file.name,
+                    url: URL.createObjectURL(file),
+                    file: file
+                }));
+                
+            displayFiles();
+        }
+
+        function displayFiles() {
+            let container = document.getElementById('file-container');
+            container.innerHTML = '';
+            images.forEach((image, index) => {
+                let img = document.createElement('img');
+                img.src = image.url;
+                img.alt = image.name;
+                img.onclick = () => openModal(index);
+                container.appendChild(img);
+            });
+        }
+
+        function sortFiles() {
+            let sortType = sortSelect.value;
+            if (sortType === 'alpha') {
+                images.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (sortType === 'numeric') {
+                images.sort((a, b) => {
+                    const numA = parseInt(a.name.match(/\d+/)) || 0;
+                    const numB = parseInt(b.name.match(/\d+/)) || 0;
+                    return numA - numB;
+                });
+            } else if (sortType === 'reverse') {
+                images.sort((a, b) => b.name.localeCompare(a.name));
+            } else if (sortType === 'natural') {
+                images.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+            } else if (sortType === 'extension') {
+                images.sort((a, b) => {
+                    const extA = a.name.split('.').pop();
+                    const extB = b.name.split('.').pop();
+                    return extA.localeCompare(extB) || a.name.localeCompare(b.name);
+                });
+            }
+            displayFiles();
+        }
+
+        // Modal functions
+        function openModal(index) {
+            currentImageIndex = index;
+            const modal = document.getElementById("myModal");
+            modal.style.display = "flex";
+            updateModalContent();
+            modeText.textContent = modeSwitch.checked ? "Scrolling" : "Default";
+        }
+
+        function closeModal() {
+            document.getElementById("myModal").style.display = "none";
+        }
+
+        function showPrevImage() {
+            currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+            updateModalContent();
+        }
+
+        function showNextImage() {
+            currentImageIndex = (currentImageIndex + 1) % images.length;
+            updateModalContent();
+        }
+
+        function updateModalContent() {
+            const modalContent = document.getElementById("modalContent");
+            const prevBtn = document.querySelector(".prev");
+            const nextBtn = document.querySelector(".next");
+
+            if (modeSwitch.checked) {
+                // Scrolling mode
+                modalContent.classList.remove("default");
+                modalContent.classList.add("scrolling");
+                modalContent.innerHTML = images.map(img => `<img src="${img.url}" alt="${img.name}">`).join("");
+                prevBtn.style.display = "none";
+                nextBtn.style.display = "none";
+            } else {
+                // Default mode
+                modalContent.classList.remove("scrolling");
+                modalContent.classList.add("default");
+                modalContent.innerHTML = `<img id="modalImage" src="${images[currentImageIndex].url}" alt="${images[currentImageIndex].name}">`;
+                prevBtn.style.display = "block";
+                nextBtn.style.display = "block";
+            }
+        }
+
+        // Mode switch handler
+        modeSwitch.addEventListener("change", () => {
+            updateModalContent();
+            modeText.textContent = modeSwitch.checked ? "Scrolling" : "Default";
+        });
+
+        // Sort select handler
+        sortSelect.addEventListener('change', sortFiles);
+
+        // Clean up object URLs when page is unloaded
+        window.addEventListener('beforeunload', () => {
+            images.forEach(image => {
+                URL.revokeObjectURL(image.url);
+            });
+        });
+    </script>
+</body>
+</html>

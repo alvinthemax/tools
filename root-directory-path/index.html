@@ -1,0 +1,91 @@
+<!DOCTYPE html><html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folder Structure Viewer</title>
+    <style>
+        body { font-family: Arial, sans-serif; white-space: pre; }
+        .delete-btn { cursor: pointer; color: red; margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <h2>Upload a Folder</h2>
+    <input type="file" webkitdirectory directory multiple id="folderInput">
+    <button onclick="copyToClipboard()">Copy Structure</button>
+    <pre id="fileTree"></pre><script>
+    let fileTree = {};
+
+    document.getElementById('folderInput').addEventListener('change', function(event) {
+        const files = event.target.files;
+        fileTree = {};
+        
+        for (const file of files) {
+            const pathParts = file.webkitRelativePath.split('/');
+            let currentLevel = fileTree;
+            
+            pathParts.forEach((part, index) => {
+                if (!currentLevel[part]) {
+                    currentLevel[part] = index === pathParts.length - 1 ? null : {};
+                }
+                currentLevel = currentLevel[part];
+            });
+        }
+        renderTree();
+    });
+
+    function renderTree() {
+        function buildTreeHTML(tree, prefix = "", parentPath = []) {
+            let html = "";
+            const keys = Object.keys(tree);
+            keys.forEach((key, index) => {
+                const isLast = index === keys.length - 1;
+                const fullPath = [...parentPath, key].join("/");
+                html += `${prefix}<span class='delete-btn' onclick='deleteEntry("${fullPath}")'>x</span> ${isLast ? "└── " : "├── "}${key}\n`;
+                if (tree[key] !== null) {
+                    html += buildTreeHTML(tree[key], prefix + (isLast ? "    " : "│   "), [...parentPath, key]);
+                }
+            });
+            return html;
+        }
+        
+        document.getElementById('fileTree').innerHTML = buildTreeHTML(fileTree);
+    }
+
+    function deleteEntry(path) {
+        const parts = path.split("/");
+        let currentLevel = fileTree;
+        for (let i = 0; i < parts.length - 1; i++) {
+            if (!currentLevel[parts[i]]) return;
+            currentLevel = currentLevel[parts[i]];
+        }
+        delete currentLevel[parts[parts.length - 1]];
+        renderTree();
+    }
+
+    function copyToClipboard() {
+        function buildTreeText(tree, prefix = "") {
+            let text = "";
+            const keys = Object.keys(tree);
+            keys.forEach((key, index) => {
+                const isLast = index === keys.length - 1;
+                text += `${prefix}${isLast ? "└── " : "├── "}${key}\n`;
+                if (tree[key] !== null) {
+                    text += buildTreeText(tree[key], prefix + (isLast ? "    " : "│   "));
+                }
+            });
+            return text;
+        }
+        
+        const text = buildTreeText(fileTree);
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        alert("Copied to clipboard!");
+    }
+</script>
+
+</body>
+</html>

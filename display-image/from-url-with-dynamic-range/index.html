@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ekstraksi Gambar dari Website</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        input[type="text"], input[type="number"] {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .image-container {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .loading {
+            font-size: 18px;
+            color: #555;
+        }
+        .error {
+            font-size: 18px;
+            color: red;
+        }
+        .progress {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+        .image-wrapper {
+            position: relative;
+            margin: 5px;
+        }
+        .image-url {
+            font-size: 12px;
+            word-break: break-all;
+            max-width: 200px;
+            margin-top: 5px;
+            color: #666;
+            white-space: pre-wrap; /* Mempertahankan format asli URL */
+            font-family: monospace; /* Font yang lebih baik untuk URL */
+        }
+        .unique-count {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .url-inputs {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .url-preview {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            font-family: monospace;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+        .range-inputs {
+            margin: 10px 0;
+        }
+        .direct-image {
+            border: 2px solid #4CAF50;
+        }
+        .notice {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ekstraksi Gambar dari Website</h1>
+        <div class="url-inputs">
+            <input type="text" id="urlInput1" placeholder="Masukkan URL pertama (contoh: https://example.com/images/photo-1.jpg)" value="https://example.com/images/photo-1.jpg">
+            <input type="text" id="urlInput2" placeholder="Masukkan URL kedua (contoh: https://example.com/images/photo-.jpg)" value="https://example.com/images/photo-.jpg">
+            <div class="notice">Untuk gambar langsung, isi kedua URL dengan pola yang sama (contoh: /photo-1.jpg dan /photo-.jpg)</div>
+        </div>
+        <div id="rangeInputs" class="range-inputs">
+            <input type="number" id="min" placeholder="From" min="0" max="1000" value="1">
+            <input type="number" id="max" placeholder="To" min="0" max="1000" value="10">
+        </div>
+        <button onclick="generateAndLoadImages()">🔍 Ekstrak Gambar</button>
+        <div id="urlPreview" class="url-preview">Contoh hasil generasi akan muncul di sini</div>
+        <div id="progress" class="progress"></div>
+        <div id="uniqueCount" class="unique-count"></div>
+        <div id="imageContainer" class="image-container"></div>
+    </div>
+
+    <script>
+        let currentIndex = 0;
+        let totalLinks = 0;
+        let links = [];
+        let displayedImages = new Set();
+        let uniqueImageCount = 0;
+        
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.svg'];
+
+        function isDirectImageUrl(url) {
+            if (!url) return false;
+            const lowerUrl = url.toLowerCase();
+            return imageExtensions.some(ext => lowerUrl.endsWith(ext));
+        }
+
+        function checkInputs() {
+            const url1 = document.getElementById("urlInput1").value.trim();
+            const url2 = document.getElementById("urlInput2").value.trim();
+            const rangeInputs = document.getElementById("rangeInputs");
+            const urlPreview = document.getElementById("urlPreview");
+
+            if (url1 && url2) {
+                rangeInputs.style.display = 'block';
+                previewGeneratedUrls();
+            } else if (url1) {
+                rangeInputs.style.display = 'none';
+                if (isDirectImageUrl(url1)) {
+                    urlPreview.textContent = `Akan menampilkan gambar langsung dari: ${url1}`;
+                } else {
+                    urlPreview.textContent = `Akan mengekstrak gambar dari: ${url1}`;
+                }
+            } else {
+                rangeInputs.style.display = 'none';
+                urlPreview.textContent = 'Masukkan URL untuk memulai';
+            }
+        }
+
+        function displayDirectImage(url) {
+            const imageContainer = document.getElementById("imageContainer");
+            const progressElement = document.getElementById("progress");
+            const uniqueCountElement = document.getElementById("uniqueCount");
+            
+            const normalizedUrl = normalizeImageUrl(url);
+            
+            if (!displayedImages.has(normalizedUrl)) {
+                displayedImages.add(normalizedUrl);
+                uniqueImageCount++;
+                uniqueCountElement.textContent = `Gambar unik ditemukan: ${uniqueImageCount}`;
+                
+                progressElement.textContent = `Menampilkan gambar langsung: ${url}`;
+                
+                const imageWrapper = document.createElement("div");
+                imageWrapper.className = "image-wrapper";
+                
+                const imageElement = document.createElement("img");
+                imageElement.src = url;
+                imageElement.classList.add("direct-image");
+                imageElement.onerror = () => {
+                    imageElement.alt = "Gagal memuat gambar";
+                    imageElement.style.border = "1px solid red";
+                    progressElement.textContent = `Gagal memuat gambar: ${url}`;
+                };
+                
+                const urlElement = document.createElement("div");
+                urlElement.className = "image-url";
+                urlElement.textContent = url; // Menampilkan URL asli dengan format yang benar
+                
+                imageWrapper.appendChild(imageElement);
+                imageWrapper.appendChild(urlElement);
+                imageContainer.appendChild(imageWrapper);
+            }
+        }
+
+        function findUrlDifference(url1, url2) {
+            if (!url2) return null;
+            
+            const arr1 = url1.split('');
+            const arr2 = url2.split('');
+            
+            let diffStart = -1;
+            let diffEnd = -1;
+            
+            for (let i = 0; i < Math.max(arr1.length, arr2.length); i++) {
+                if (arr1[i] !== arr2[i]) {
+                    diffStart = i;
+                    break;
+                }
+            }
+            
+            if (diffStart === -1) return null;
+            
+            let i1 = arr1.length - 1;
+            let i2 = arr2.length - 1;
+            
+            while (i1 >= 0 && i2 >= 0 && arr1[i1] === arr2[i2]) {
+                i1--;
+                i2--;
+            }
+            
+            diffEnd = Math.max(i1, i2) + 1;
+            
+            return {
+                prefix: url1.substring(0, diffStart),
+                part1: url1.substring(diffStart, diffEnd),
+                part2: url2.substring(diffStart, diffEnd),
+                suffix: url1.substring(diffEnd)
+            };
+        }
+
+        function generateLinks(url1, url2, min, max) {
+            if (!url2) {
+                return [url1];
+            }
+            
+            const diff = findUrlDifference(url1, url2);
+            
+            if (!diff) {
+                const match = url1.match(/(\d+)(?=[^\d]*$)/);
+                if (match) {
+                    const num = match[0];
+                    const baseUrl = url1.replace(num, '{num}');
+                    return Array.from({length: max - min + 1}, (_, i) => 
+                        baseUrl.replace('{num}', min + i));
+                }
+                return [url1];
+            }
+            
+            const isPart1Number = !isNaN(diff.part1) && diff.part1 !== '';
+            const isPart2Number = !isNaN(diff.part2) && diff.part2 !== '';
+            
+            if (isPart1Number || isPart2Number) {
+                const baseUrl = diff.prefix + '{num}' + diff.suffix;
+                return Array.from({length: max - min + 1}, (_, i) => 
+                    baseUrl.replace('{num}', min + i));
+            } else {
+                return [url1, url2];
+            }
+        }
+
+        function previewGeneratedUrls() {
+            const url1 = document.getElementById("urlInput1").value.trim();
+            const url2 = document.getElementById("urlInput2").value.trim();
+            const min = parseInt(document.getElementById("min").value);
+            const max = parseInt(document.getElementById("max").value);
+            
+            if (!url1) return;
+            
+            const preview = generateLinks(url1, url2, min, max);
+            const previewElement = document.getElementById("urlPreview");
+            
+            if (preview.length === 1) {
+                if (isDirectImageUrl(url1)) {
+                    previewElement.textContent = `Akan menampilkan gambar langsung dari: ${preview[0]}`;
+                } else {
+                    previewElement.textContent = `Akan mengekstrak gambar dari: ${preview[0]}`;
+                }
+            } else if (preview.length <= 5) {
+                previewElement.textContent = preview.join("\n");
+            } else {
+                previewElement.textContent = [
+                    preview[0],
+                    preview[1],
+                    "...",
+                    preview[preview.length - 2],
+                    preview[preview.length - 1],
+                    `(Total ${preview.length} URL)`
+                ].join("\n");
+            }
+        }
+
+        async function loadImage(url) {
+            const imageContainer = document.getElementById("imageContainer");
+            const progressElement = document.getElementById("progress");
+            const uniqueCountElement = document.getElementById("uniqueCount");
+
+            progressElement.textContent = `Memproses ${currentIndex + 1} dari ${totalLinks}: ${url}`;
+
+            try {
+                if (isDirectImageUrl(url)) {
+                    displayDirectImage(url);
+                } else {
+                    const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+                    
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const data = await response.json();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(data.contents, "text/html");
+                    const images = doc.querySelectorAll("img");
+
+                    if (images.length > 0) {
+                        images.forEach(img => {
+                            let src = img.getAttribute("src");
+                            if (src) {
+                                if (!src.startsWith("http")) {
+                                    let baseUrl = new URL(url);
+                                    src = new URL(src, baseUrl.origin).href;
+                                }
+                                
+                                const normalizedSrc = normalizeImageUrl(src);
+                                
+                                if (!displayedImages.has(normalizedSrc)) {
+                                    displayedImages.add(normalizedSrc);
+                                    uniqueImageCount++;
+                                    uniqueCountElement.textContent = `Gambar unik ditemukan: ${uniqueImageCount}`;
+                                    
+                                    const imageWrapper = document.createElement("div");
+                                    imageWrapper.className = "image-wrapper";
+                                    
+                                    const imageElement = document.createElement("img");
+                                    imageElement.src = src;
+                                    imageElement.onerror = () => {
+                                        imageElement.alt = "Gagal memuat gambar";
+                                        imageElement.style.border = "1px solid red";
+                                    };
+                                    
+                                    const urlElement = document.createElement("div");
+                                    urlElement.className = "image-url";
+                                    urlElement.textContent = src; // Menampilkan URL asli dengan format yang benar
+                                    
+                                    imageWrapper.appendChild(imageElement);
+                                    imageWrapper.appendChild(urlElement);
+                                    imageContainer.appendChild(imageWrapper);
+                                }
+                            }
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error(`Error loading ${url}:`, error);
+                const errorElement = document.createElement("div");
+                errorElement.className = "error";
+                errorElement.textContent = `Gagal memuat: ${url}`;
+                imageContainer.appendChild(errorElement);
+            }
+
+            currentIndex++;
+            if (currentIndex < totalLinks) {
+                setTimeout(() => loadImage(links[currentIndex]), 100);
+            } else {
+                progressElement.textContent = `Selesai memproses ${totalLinks} URL`;
+                uniqueCountElement.textContent = `Total gambar unik ditemukan: ${uniqueImageCount}`;
+            }
+        }
+
+        function normalizeImageUrl(url) {
+            try {
+                const urlObj = new URL(url);
+                if (isDirectImageUrl(url)) {
+                    return urlObj.href;
+                }
+                return `${urlObj.origin}${urlObj.pathname}`;
+            } catch {
+                return url;
+            }
+        }
+
+        function generateAndLoadImages() {
+            const url1 = document.getElementById("urlInput1").value.trim();
+            const url2 = document.getElementById("urlInput2").value.trim();
+            const min = parseInt(document.getElementById("min").value);
+            const max = parseInt(document.getElementById("max").value);
+
+            if (!url1) {
+                alert("Masukkan URL pertama!");
+                return;
+            }
+
+            if (url2 && (isNaN(min) || isNaN(max) || min < 0 || max > 1000 || min > max)) {
+                alert("Masukkan rentang angka yang valid (0 - 1000)!");
+                return;
+            }
+
+            currentIndex = 0;
+            links = [];
+            displayedImages.clear();
+            uniqueImageCount = 0;
+            
+            links = generateLinks(url1, url2, min, max);
+            totalLinks = links.length;
+
+            const imageContainer = document.getElementById("imageContainer");
+            const uniqueCountElement = document.getElementById("uniqueCount");
+            imageContainer.innerHTML = "<p class='loading'>Mempersiapkan ekstraksi...</p>";
+            uniqueCountElement.textContent = "";
+            
+            if (links.length > 0) {
+                loadImage(links[0]);
+            }
+        }
+
+        document.getElementById("urlInput1").addEventListener("input", checkInputs);
+        document.getElementById("urlInput2").addEventListener("input", checkInputs);
+        document.getElementById("min").addEventListener("input", previewGeneratedUrls);
+        document.getElementById("max").addEventListener("input", previewGeneratedUrls);
+        
+        checkInputs();
+    </script>
+</body>
+</html>
