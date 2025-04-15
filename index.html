@@ -1,19 +1,283 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halaman Utama</title>
-    <link rel="stylesheet" href="assets/main.css">
+    <title>Web Tools Collection</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #6b8cae;
+            --background-color: #f8f9fa;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --hover-color: #e9f0f8;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e1e1e1;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: var(--secondary-color);
+            font-weight: normal;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .tools-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .tool-card {
+            background-color: var(--card-color);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            transition: all 0.3s ease;
+            border: 1px solid #e1e1e1;
+        }
+        
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            background-color: var(--hover-color);
+        }
+        
+        .tool-card a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            height: 100%;
+        }
+        
+        .tool-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .tool-description {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+        
+        .tool-path {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #888;
+            background-color: #f0f0f0;
+            padding: 3px 6px;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+        
+        .category {
+            grid-column: 1 / -1;
+            font-size: 1.4rem;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #e1e1e1;
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .tools-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Selamat Datang di Website Saya</h1>
-    <nav>
-        <ul>
-            <li><a href="about.html">Tentang</a></li>
-            <li><a href="viff/viff-v13.html">View Images From Files</a></li>
-            <li><a href="se/se-v1.1.html">Search Engine</a></li>
-        </ul>
-    </nav>
+    <header>
+        <h1>Web Tools Collection</h1>
+        <p class="subtitle">A comprehensive set of web utilities for various purposes including media handling, URL exploration, and content extraction.</p>
+    </header>
+
+    <div class="tools-container">
+        <h2 class="category">Video Tools</h2>
+        
+        <div class="tool-card">
+            <a href="video-player/use-multiple-upload/index.html">
+                <div class="tool-title">Multiple Video Upload Player</div>
+                <div class="tool-description">Upload and play multiple videos with a customizable playlist interface.</div>
+                <div class="tool-path">/video-player/use-multiple-upload/</div>
+            </a>
+        </div>
+        
+        <div class="tool-card">
+            <a href="video-player/use-single-upload/index.html">
+                <div class="tool-title">Single Video Upload Player</div>
+                <div class="tool-description">Upload and play a single video file with playback controls.</div>
+                <div class="tool-path">/video-player/use-single-upload/</div>
+            </a>
+        </div>
+
+        <h2 class="category">URL Exploration</h2>
+        
+        <div class="tool-card">
+            <a href="explore-url-site/use-search-engine/index.html">
+                <div class="tool-title">Basic URL Search Engine</div>
+                <div class="tool-description">Search and explore URLs with basic filtering capabilities.</div>
+                <div class="tool-path">/explore-url-site/use-search-engine/</div>
+            </a>
+        </div>
+        
+        <div class="tool-card">
+            <a href="explore-url-site/use-advanced-search-engine/index.html">
+                <div class="tool-title">Advanced URL Search Engine</div>
+                <div class="tool-description">Advanced URL search with multiple filters and sorting options.</div>
+                <div class="tool-path">/explore-url-site/use-advanced-search-engine/</div>
+            </a>
+        </div>
+
+        <h2 class="category">Media Utilities</h2>
+        
+        <div class="tool-card">
+            <a href="qr-maker/index.html">
+                <div class="tool-title">QR Code Generator</div>
+                <div class="tool-description">Create custom QR codes for URLs, text, or contact information.</div>
+                <div class="tool-path">/qr-maker/</div>
+            </a>
+        </div>
+        
+        <div class="tool-card">
+            <a href="music-player/index.html">
+                <div class="tool-title">Music Player</div>
+                <div class="tool-description">Play audio files with playlist support and equalizer settings.</div>
+                <div class="tool-path">/music-player/</div>
+            </a>
+        </div>
+        
+        <div class="tool-card">
+            <a href="extract-text-from-image/index.html">
+                <div class="tool-title">Text Extraction from Images</div>
+                <div class="tool-description">Extract text from uploaded images using OCR technology.</div>
+                <div class="tool-path">/extract-text-from-image/</div>
+            </a>
+        </div>
+        
+        <div class="tool-card">
+            <a href="iframe/index.html">
+                <div class="tool-title">iFrame Embedder</div>
+                <div class="tool-description">Embed and preview external content using iframes.</div>
+                <div class="tool-path">/iframe/</div>
+            </a>
+        </div>
+
+        <h2 class="category">Image Handling</h2>
+        
+        <div class="tool-card">
+            <a href="display-image/from-folder-and-files-with-drag-and-drop/index.html">
+                <div class="tool-title">Drag & Drop Image Gallery</div>
+                <div class="tool-description">Display images from folders with drag and drop functionality.</div>
+                <div class="tool-path">/display-image/from-folder-and-files-with-drag-and-drop/</div>
+            </a>
+        </div>
+        
+        <div class="tool-card">
+            <a href="display-image/from-compressed-file/index.html">
+                <div class="tool-title">Image from ZIP Archive</div>
+                <div class="tool-description">Extract and display images directly from compressed files.</div>
+                <div class="tool-path">/display-image/from-compressed-file/</div>
+            </a>
+        </div>
+        
+        <div class="tool-card">
+            <a href="display-image/from-combinated-sources/index.html">
+                <div class="tool-title">Combined Image Sources</div>
+                <div class="tool-description">Display images from multiple combined sources in one interface.</div>
+                <div class="tool-path">/display-image/from-combinated-sources/</div>
+            </a>
+        </div>
+        
+        <div class="tool-card">
+            <a href="display-image/to-edit-it/index.html">
+                <div class="tool-title">Image Editor</div>
+                <div class="tool-description">Basic image editing tools including crop, rotate, and filters.</div>
+                <div class="tool-path">/display-image/to-edit-it/</div>
+            </a>
+        </div>
+        
+        <div class="tool-card">
+            <a href="display-image/from-clipboard-and-download-it/index.html">
+                <div class="tool-title">Clipboard Image Handler</div>
+                <div class="tool-description">Paste images from clipboard and download them.</div>
+                <div class="tool-path">/display-image/from-clipboard-and-download-it/</div>
+            </a>
+        </div>
+        
+        <div class="tool-card">
+            <a href="display-image/from-url/index.html">
+                <div class="tool-title">Image from URL</div>
+                <div class="tool-description">Display images by entering their direct URLs.</div>
+                <div class="tool-path">/display-image/from-url/</div>
+            </a>
+        </div>
+        
+        <div class="tool-card">
+            <a href="display-image/from-url-use-apis/index.html">
+                <div class="tool-title">API Image Fetcher</div>
+                <div class="tool-description">Fetch and display images using various web APIs.</div>
+                <div class="tool-path">/display-image/from-url-use-apis/</div>
+            </a>
+        </div>
+        
+        <div class="tool-card">
+            <a href="display-image/from-url-with-dynamic-range/index.html">
+                <div class="tool-title">Dynamic Range Image Loader</div>
+                <div class="tool-description">Load images with dynamic resolution based on viewport.</div>
+                <div class="tool-path">/display-image/from-url-with-dynamic-range/</div>
+            </a>
+        </div>
+
+        <h2 class="category">System Utilities</h2>
+        
+        <div class="tool-card">
+            <a href="root-directory-path/index.html">
+                <div class="tool-title">Root Directory Path</div>
+                <div class="tool-description">Utility to display and work with root directory paths.</div>
+                <div class="tool-path">/root-directory-path/</div>
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        <p>Web Tools Collection &copy; 2023 | All tools are client-side only</p>
+        <p>Assets and resources are located in the /assets/ directory</p>
+    </footer>
 </body>
 </html>
