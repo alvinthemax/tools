@@ -122,48 +122,48 @@
 
     /* Search Icon */
     .search-icon {
-    position: relative;
-    width: 44px;
-    height: 44px;
-    cursor: pointer;
-    margin-left: 8px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+        position: relative;
+        width: 44px;
+        height: 44px;
+        cursor: pointer;
+        margin-left: 8px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-.search-icon__circle {
-    width: 16px;
-    height: 16px;
-    border: 2px solid var(--primary-color);
-    border-radius: 50%;
-    box-sizing: border-box;
-}
+    .search-icon__circle {
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--primary-color);
+        border-radius: 50%;
+        box-sizing: border-box;
+    }
 
-.search-icon__handle {
-    position: absolute;
-    width: 10px;
-    height: 2px;
-    background-color: var(--primary-color);
-    transform: rotate(45deg);
-    transform-origin: top left;
-    top: 24px;
-    left: 26px;
-}
+    .search-icon__handle {
+        position: absolute;
+        width: 10px;
+        height: 2px;
+        background-color: var(--primary-color);
+        transform: rotate(45deg);
+        transform-origin: top left;
+        top: 24px;
+        left: 26px;
+    }
 
-.search-icon:hover .search-icon__circle,
-.search-icon:hover .search-icon__handle {
-    transform: scale(1.1) rotate(45deg);
-}
+    .search-icon:hover .search-icon__circle,
+    .search-icon:hover .search-icon__handle {
+        transform: scale(1.1) rotate(45deg);
+    }
 
-body.dark-mode .search-icon__circle {
-    border-color: #8ab4f8;
-}
+    body.dark-mode .search-icon__circle {
+        border-color: #8ab4f8;
+    }
 
-body.dark-mode .search-icon__handle {
-    background-color: #8ab4f8;
-}
+    body.dark-mode .search-icon__handle {
+        background-color: #8ab4f8;
+    }
 
     /* Loading Spinner */
     .lds-ring {
@@ -547,10 +547,10 @@ body.dark-mode .search-icon__handle {
     <div class="input-unit">
         <input type="text" id="searchInput" placeholder="Type here..." />
         <button class="open-popup" onclick="openPopup()" id="engineButton">Select Engine</button>
-        <div class="search-icon">
-    <span class="search-icon__circle"></span>
-    <span class="search-icon__handle"></span>
-</div>
+        <div class="search-icon" id="searchIcon">
+            <span class="search-icon__circle"></span>
+            <span class="search-icon__handle"></span>
+        </div>
         <div class="lds-ring" id="loadingSpinner"><div></div><div></div><div></div><div></div></div>
     </div>
 
@@ -607,7 +607,7 @@ body.dark-mode .search-icon__handle {
     <script>
         const searchInput = document.getElementById('searchInput');
         const loadingSpinner = document.getElementById('loadingSpinner');
-        const searchIcon = document.getElementById('searchIcon');
+        const searchIcon = document.querySelector('.search-icon');
         const popupModal = document.getElementById('popupModal');
         const engineButton = document.getElementById('engineButton');
         const historySection = document.getElementById('historySection');
@@ -634,6 +634,24 @@ body.dark-mode .search-icon__handle {
                 if (e.key === 'Enter') {
                     handleEnterKey();
                 }
+            });
+            
+            // Add click event for search icon
+            searchIcon.addEventListener('click', function() {
+                const inputText = searchInput.value.trim();
+                if (!inputText) {
+                    clickCount++;
+                    if (clickCount === 5) {
+                        const confirmation = confirm("Would you like to open the advanced search engine?");
+                        if (confirmation) {
+                            window.open("https://alvinthemax.github.io/tools/advanced-search-engine/ase.html", '_self');
+                        }
+                        clickCount = 0;
+                    }
+                    return;
+                }
+                clickCount = 0;
+                openSearch();
             });
         });
 
@@ -724,7 +742,7 @@ body.dark-mode .search-icon__handle {
             setTimeout(() => {
                 window.open(engineUrls[engineName], '_blank');
                 loadingSpinner.style.display = 'none';
-                searchIcon.style.display = 'block';
+                searchIcon.style.display = 'flex';
             }, 1000);
 
             // Add to history with timestamp
@@ -865,23 +883,6 @@ body.dark-mode .search-icon__handle {
                 updateHistory();
             }
         }
-
-        searchIcon.addEventListener('click', function() {
-            const inputText = searchInput.value.trim();
-            clickCount++;
-            if (!inputText) {
-                if (clickCount === 5) {
-                    const confirmation = confirm("Would you like to open the advanced search engine?");
-                    if (confirmation) {
-                        window.open("https://alvinthemax.github.io/tools/advanced-search-engine/ase.html", '_self');
-                    }
-                    clickCount = 0;
-                }
-                return;
-            }
-
-            clickCount = 0;
-        });
     </script>
 </body>
 </html>
