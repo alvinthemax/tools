@@ -122,49 +122,48 @@
 
     /* Search Icon */
     .search-icon {
-        position: relative;
-        width: 44px;
-        height: 44px;
-        cursor: pointer;
-        margin-left: 8px;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+    position: relative;
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+    margin-left: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-    .search-icon__circle {
-        position: absolute;
-        width: 18px;
-        height: 18px;
-        border: 2px solid var(--primary-color);
-        border-radius: 50%;
-        top: 12px;
-        left: 12px;
-        transition: var(--transition);
-    }
+.search-icon__circle {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--primary-color);
+    border-radius: 50%;
+    box-sizing: border-box;
+}
 
-    .search-icon__rectangle {
-        position: absolute;
-        width: 9px;
-        height: 2px;
-        background-color: var(--primary-color);
-        transform: rotate(45deg);
-        bottom: 14px;
-        right: 12px;
-        transition: var(--transition);
-    }
+.search-icon__handle {
+    position: absolute;
+    width: 10px;
+    height: 2px;
+    background-color: var(--primary-color);
+    transform: rotate(45deg);
+    transform-origin: top left;
+    top: 24px;
+    left: 26px;
+}
 
-    .search-icon:hover .search-icon__circle,
-    .search-icon:hover .search-icon__rectangle {
-        transform: scale(1.1);
-    }
+.search-icon:hover .search-icon__circle,
+.search-icon:hover .search-icon__handle {
+    transform: scale(1.1) rotate(45deg);
+}
 
-    body.dark-mode .search-icon__circle,
-    body.dark-mode .search-icon__rectangle {
-        border-color: #8ab4f8;
-        background-color: #8ab4f8;
-    }
+body.dark-mode .search-icon__circle {
+    border-color: #8ab4f8;
+}
+
+body.dark-mode .search-icon__handle {
+    background-color: #8ab4f8;
+}
 
     /* Loading Spinner */
     .lds-ring {
@@ -548,10 +547,10 @@
     <div class="input-unit">
         <input type="text" id="searchInput" placeholder="Type here..." />
         <button class="open-popup" onclick="openPopup()" id="engineButton">Select Engine</button>
-        <div class="search-icon" id="searchIcon" onclick="openSearch()">
-            <div class="search-icon__circle"></div>
-            <div class="search-icon__rectangle"></div>
-        </div>
+        <div class="search-icon">
+    <span class="search-icon__circle"></span>
+    <span class="search-icon__handle"></span>
+</div>
         <div class="lds-ring" id="loadingSpinner"><div></div><div></div><div></div><div></div></div>
     </div>
 
